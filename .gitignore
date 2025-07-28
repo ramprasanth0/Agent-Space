@@ -1,2 +1,7 @@
 # Python venv
 backend/venv/
+
+
+
+# Environment variables and OS files
+*.env

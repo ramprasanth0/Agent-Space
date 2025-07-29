@@ -33,8 +33,10 @@ class PerplexityAgent(BaseAgentModel):
         payload = {
             "model": "sonar",  # Change from "sonar-pro" to "sonar"
             "messages": [
-                {"role": "user","content":message}
-            ]
+                {"role": "system", "content": "provide answers in 15 words."},
+                {"role": "user","content":message},
+            ],
+            # 'search_filter': 'very short answers'
         }
         try:
             # print(api_key)
@@ -52,7 +54,7 @@ class PerplexityAgent(BaseAgentModel):
                     print("Perplexity API error:", response.status_code, error_body)
                     raise Exception(f"Perplexity API call failed: {error_body}")
                 data = response.json()
-                print("FULL Perplexity API raw response:", type(data))
+                # print("FULL Perplexity API raw response:", type(data))
                 return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
         #Exception handling

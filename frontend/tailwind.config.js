@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        minecraft: ['"Press Start 2P"', 'cursive'],
+      },
+    }
   },
   plugins: [],
 }

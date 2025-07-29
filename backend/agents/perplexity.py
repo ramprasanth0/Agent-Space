@@ -22,6 +22,8 @@ class PerplexityAgent(BaseAgentModel):
 
     async def get_response(self, message:str) -> str:
         api_key = os.environ.get("PERPLEXITY_API_KEY")
+        if not api_key:
+            raise Exception("PERPLEXITY_API_KEY not set in environment.")
         endpoint = "https://api.perplexity.ai/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -29,17 +31,37 @@ class PerplexityAgent(BaseAgentModel):
         }
 
         payload = {
-            "model": "sonar-pro",
+            "model": "sonar",  # Change from "sonar-pro" to "sonar"
             "messages": [
                 {"role": "user","content":message}
             ]
         }
+        try:
+            # print(api_key)
+            async with httpx.AsyncClient(timeout=30) as client:           # async context manager to handle the api request
+                response = await client.post(endpoint, headers=headers, json=payload)
+                try:
+                    response.raise_for_status()
+                except Exception:
+                    # print("Perplexity API error:", response.status_code, await response.text())
+                    # raise
+                    try:
+                        error_body = await response.json()
+                    except Exception:
+                        error_body = await response.text()
+                    print("Perplexity API error:", response.status_code, error_body)
+                    raise Exception(f"Perplexity API call failed: {error_body}")
+                data = response.json()
+                print("FULL Perplexity API raw response:", type(data))
+                return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
-        async with httpx.AsyncClient() as client:           # async context manager to handle the api request
-            response = await client.post(endpoint, headers=headers, json=payload)
-            response.raise_for_status()                     # <-- raises an exception if not 2xx/3xx(http code)
-            data = response.json()                          # response data
-            return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+        #Exception handling
+        except httpx.ReadTimeout:                   
+            raise Exception("Perplexity API timed out. Check network, endpoint, and API key.")
+        except Exception as e:
+            print("Probably other error",e)
+            raise
+
 
 
 

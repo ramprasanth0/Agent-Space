@@ -22,7 +22,7 @@ export default function StarField({ starCount = 120 }) {
 
       star.style.width = `${size}px`;
       star.style.height = `${size}px`;
-      star.style.background = "white";
+      star.style.background = "grey";
       star.style.borderRadius = "9999px";
       star.style.position = "absolute";
       star.style.left = `${left}%`;

@@ -15,6 +15,11 @@ export default function UserInput(){
         try{
             const data = await sendChatToPerplexity(input);
             // console.log(data)
+
+            //testing
+            // const data = { response: "France is located in Western Europe, bordered by Belgium, Luxembourg, Germany, Switzerland, Italy, Monaco, Spain, and Andorra, with coasts on the Mediterranean Sea, Atlantic Ocean, and English Channel[1][2][4]." };
+            
+
             setResponse(data.response);
 
         }catch(err){
@@ -28,7 +33,7 @@ export default function UserInput(){
     return(
         <div className="flex flex-col rounded-xl items-center justify-center relative z-10">
             <div className="bg-englishviolet shadow-md rounded-3xl p-6 max-w-md w-full">
-                <label className="flex items-center gap-2 mb-4">
+                <label className="flex items-center font-medium gap-2 mb-4">
                     Your Unhinged Queries: 
                     <input className="bg-black text-white px-3 block py-2 border border-gray-300 rounded-md bg-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                         value={input}
@@ -52,9 +57,11 @@ export default function UserInput(){
                         </span>
                     ) : "Go!"}
                 </button>
-                <div>
+                {response && (
+                    <div className="bg-violet-700 shadow-md rounded-3xl mt-3 p-6 pt max-w-md w-full">
                     {response}
                 </div>
+                )}
             </div>
         </div>
     )

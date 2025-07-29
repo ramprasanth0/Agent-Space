@@ -1,14 +1,14 @@
-import { useState } from 'react'
+// import { useState } from 'react'
 import './App.css'
 import Home from './pages/Home'
 
-function App() {
+export default function App() {
     return (
-      <Home/>
+      <div className="min-h-screen bg-gradient-to-b from-violet-900 to-black">
+        <Home/>
+      </div>
     )
 }
-
-export default App
 
 
 //testing

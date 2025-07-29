@@ -27,10 +27,10 @@ export default function UserInput(){
 
     return(
         <div className="flex flex-col rounded-xl items-center justify-center relative z-10">
-            <div className="bg-violet-900 shadow-md rounded-3xl p-6 max-w-md w-full">
+            <div className="bg-englishviolet shadow-md rounded-3xl p-6 max-w-md w-full">
                 <label className="flex items-center gap-2 mb-4">
                     Your Unhinged Queries: 
-                    <input className="px-3 block py-2 border border-gray-300 rounded-md bg-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    <input className="bg-black text-white px-3 block py-2 border border-gray-300 rounded-md bg-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         disabled={loading}
@@ -38,7 +38,7 @@ export default function UserInput(){
                     />
                 </label>
                 <button 
-                    className="mt-4 w-full bg-blue-600 text-white rounded-md py-2 hover:bg-blue-700 transition"
+                    className="mt-4 w-full bg-russianviolet text-white rounded-md py-2 hover:bg-blue-700 transition"
                     onClick={handleClick}
                     disabled={loading || !input.trim()}
                     >

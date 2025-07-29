@@ -22,22 +22,23 @@ export default function UserInput(){
 
 
     return(
-        <>
-            <div>
-                <label>
+        <div className="flex flex-col rounded-xl items-center justify-center">
+            <div className="bg-violet-900 shadow-md rounded-3xl p-6 max-w-md w-full">
+                <label className="flex items-center gap-2 mb-4">
                     Your Unhinged Queries: 
-                    <input 
+                    <input className="px-3 block py-2 border border-gray-300 rounded-md bg-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         // disabled={loading}
                         placeholder="Type your message"
                     />
                 </label>
-                <button onClick={handleClick}>
+                <button className="mt-4 w-full bg-blue-600 text-white rounded-md py-2 hover:bg-blue-700 transition"
+                onClick={handleClick}>
                     Go!
                 </button>
                 <p>{response}</p>
             </div>
-        </>
+        </div>
     )
 }

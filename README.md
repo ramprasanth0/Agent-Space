@@ -76,7 +76,10 @@ uvicorn main:app --reload
 
 ## 🤖 Inspiration
 
-Agent Space is for the curiosity-driven: experiment with LLM agents, build beautiful UIs, and chart your own path among the stars of AI.
+The design and visual palette of Agent Space are directly inspired by authentic astronomical photography.  
+My primary UI gradient and galaxy backdrop take cues from [this image of a Nebula by Kitt Peak National Observatory](https://kpno.noirlab.edu/images/noao0126a/):
+
+>pairing advanced AI with the wonder of the observable universe._
 
 &nbsp;
 

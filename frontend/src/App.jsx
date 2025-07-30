@@ -4,12 +4,12 @@ import Home from './pages/Home'
 import StarField from './components/StarField'
 
 export default function App() {
-    return (
-      <div className="min-h-screen bg-galaxy-violet relative overflow-hidden">
-        <StarField starCount={150}/>
-        <Home/>
-      </div>
-    )
+  return (
+    <div className="min-h-screen bg-galaxy-night relative overflow-hidden">
+      <StarField starCount={150} />
+      <Home />
+    </div>
+  )
 }
 
 

@@ -2,65 +2,65 @@ import { use, useState } from "react"
 import { sendChatToPerplexity } from "../api/Agents"
 
 
-export default function UserInput(){
+export default function UserInput() {
     const [loading, setLoading] = useState(false)
     const [input, setInput] = useState('');
-    const [response,setResponse] = useState("");
+    const [response, setResponse] = useState("");
 
-    const handleClick = async(e) =>{
+    const handleClick = async (e) => {
         setLoading(true)
         e.preventDefault();
         setResponse("")
         console.log(input)
-        try{
+        try {
             const data = await sendChatToPerplexity(input);
             // console.log(data)
 
             //testing
             // const data = { response: "France is located in Western Europe, bordered by Belgium, Luxembourg, Germany, Switzerland, Italy, Monaco, Spain, and Andorra, with coasts on the Mediterranean Sea, Atlantic Ocean, and English Channel[1][2][4]." };
-            
+
 
             setResponse(data.response);
 
-        }catch(err){
+        } catch (err) {
             setResponse("Error: Unable to contact backend.");
-        }finally {
+        } finally {
             setLoading(false);
         }
     }
 
 
-    return(
+    return (
         <div className="flex flex-col rounded-xl items-center justify-center relative z-10">
-            <div className="bg-englishviolet shadow-md rounded-3xl p-6 max-w-md w-full">
-                <label className="flex items-center font-medium gap-2 mb-4">
-                    Your Unhinged Queries: 
-                    <input className="bg-black text-white px-3 block py-2 border border-gray-300 rounded-md bg-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            <div className="bg-pomp_and_power-300 shadow-md rounded-3xl p-6 max-w-md w-full">
+                <label className="text-thistle-600 flex items-center font-medium gap-2 mb-4">
+                    Your Unhinged Queries:
+                    <input className="bg-black text-white px-3 block py-2 border border-none rounded-md bg-center focus:outline-none focus:ring-4 focus:ring-violet-800 transition"
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         disabled={loading}
                         placeholder="Type your message"
                     />
                 </label>
-                <button 
-                    className="mt-4 w-full bg-russianviolet text-white rounded-md py-2 hover:bg-blue-700 transition"
+                <button
+                    className="mt-4 w-full bg-thistle text-night rounded-md py-2 hover:bg-thistle-100 hover:text-white transition"
                     onClick={handleClick}
                     disabled={loading || !input.trim()}
-                    >
-                        {loading ? (
+                >
+                    {loading ? (
                         <span className="flex items-center justify-center">
                             <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                             </svg>
                             Loading...
                         </span>
                     ) : "Go!"}
                 </button>
                 {response && (
-                    <div className="bg-violet-700 shadow-md rounded-3xl mt-3 p-6 pt max-w-md w-full">
-                    {response}
-                </div>
+                    <div className="bg-english-violet-700 text-night shadow-md rounded-3xl mt-3 p-6 pt max-w-md w-full">
+                        {response}
+                    </div>
                 )}
             </div>
         </div>

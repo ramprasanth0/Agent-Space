@@ -5,7 +5,7 @@ export default function InputBox({input,loading,setInput,handleClick}){
                 <div className="shrink-0">
                     Your Unhinged Queries:
                 </div>
-                <input className="bg-black text-white px-3 block py-2 border border-none rounded-md bg-center focus:outline-none focus:ring-4 focus:ring-violet-800 transition"
+                <input className="bg-black text-white px-3 block py-2 border border-none rounded-2xl bg-center focus:outline-none focus:ring-4 focus:ring-purple-800 transition"
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     disabled={loading}
@@ -13,7 +13,7 @@ export default function InputBox({input,loading,setInput,handleClick}){
                 />
             </label>
             <button
-                className="mt-4 w-full bg-thistle text-night rounded-md py-2 hover:bg-thistle-100 hover:text-white transition"
+                className="mt-4 w-full bg-thistle text-night rounded-full py-2 hover:bg-thistle-100 hover:text-white transition"
                 onClick={handleClick}
                 disabled={loading || !input.trim()}
             >

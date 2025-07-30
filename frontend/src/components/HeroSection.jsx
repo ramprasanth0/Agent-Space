@@ -17,11 +17,11 @@ export default function HeroSection() {
         setResponse("")
         console.log(input)
         try {
-            const data = await sendChatToPerplexity(input);
+            // const data = await sendChatToPerplexity(input);
             // console.log(data)
 
             //for testing:
-            // const data = { response: "France is located in Western Europe, bordered by Belgium, Luxembourg, Germany, Switzerland, Italy, Monaco, Spain, and Andorra, with coasts on the Mediterranean Sea, Atlantic Ocean, and English Channel[1][2][4]." };
+            const data = { response: "France is located in Western Europe, bordered by Belgium, Luxembourg, Germany, Switzerland, Italy, Monaco, Spain, and Andorra, with coasts on the Mediterranean Sea, Atlantic Ocean, and English Channel[1][2][4]." };
 
 
             setResponse(data.response);

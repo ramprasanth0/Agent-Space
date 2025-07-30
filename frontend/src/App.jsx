@@ -6,7 +6,7 @@ import StarField from './components/StarField'
 export default function App() {
   return (
     <div className="min-h-screen bg-galaxy-night relative overflow-hidden">
-      <StarField starCount={150} />
+      <StarField/>
       <Home />
     </div>
   )

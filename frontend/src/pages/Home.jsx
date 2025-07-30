@@ -1,4 +1,4 @@
-import UserInput from "../components/UserInput"
+import HeroSection from "../components/HeroSection"
 
 export default function Home() {
   return (
@@ -9,7 +9,7 @@ export default function Home() {
         </h1>
       </header>
       <main className="flex justify-center">
-        <UserInput />
+        <HeroSection />
       </main>
     </div>
   )

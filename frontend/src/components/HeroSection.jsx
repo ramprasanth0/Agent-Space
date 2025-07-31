@@ -1,5 +1,5 @@
 import { use, useState } from "react"
-import { sendChatToPerplexity, sendChatToGemini } from "../api/Agents"
+import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek } from "../api/Agents"
 import InputBox from './InputBox'
 import ModelSelector from "./ModelSelector";
 
@@ -23,6 +23,9 @@ export default function HeroSection() {
             }
             else if (selectedModel === "Gemini") {
                 data = await sendChatToGemini(input);
+            }
+            else if (selectedModel === "R1") {
+                data = await sendChatToDeepSeek(input);
             }
             else {
                 data = { response: "Model not implemented yet." };

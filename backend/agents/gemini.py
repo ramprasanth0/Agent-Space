@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import google.generativeai as genai
 from google.generativeai import types
+from .base import BaseAgentModel
 # import 
 
 

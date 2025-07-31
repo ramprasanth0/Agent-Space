@@ -5,6 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from agents.perplexity import PerplexityAgent
 from agents.gemini import GeminiAgent
+from agents.deepseek import DeepseekAgent
 
 
 app = FastAPI()
@@ -24,6 +25,7 @@ async def home():
 #agents initialization
 perplexity_agent = PerplexityAgent()
 gemini_agent=GeminiAgent()
+deepseek_agent=DeepseekAgent()
 
 class ChatRequest(BaseModel):
     message : str
@@ -58,4 +60,12 @@ async def chat_gemini(request: ChatRequest):
     # result = gemini_agent.get_response(request.message)
     # return ChatResponse(provider= "gemini", response= result)
     reply = await run_in_threadpool(gemini_agent.get_response, request.message)
-    return ChatResponse(provider="gemini", response=  reply)
+    return ChatResponse(provider="gemini", response= reply)
+
+
+#Integration of deepseek LLM
+@app.post("/chat/deepseek",response_model=ChatResponse)
+async def chat_deepseek(request: ChatRequest):
+
+    reply = await deepseek_agent.get_response(message=request.message)
+    return ChatResponse(provider="deepseek",response=reply)

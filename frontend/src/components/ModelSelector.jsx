@@ -11,7 +11,7 @@ export default function ModelSelector({ models, selected, onSelect }) {
         Sonar : perplexity,
         R1 : deepSeek,
         Gemini: gemini,
-        Qwen: qwen
+        Qwen: qwen,
         };
 
     return (

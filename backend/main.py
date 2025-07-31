@@ -5,7 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from agents.perplexity import PerplexityAgent
 from agents.gemini import GeminiAgent
-from agents.deepseek import DeepseekAgent
+from agents.open_router import OpenRouterAgent
 
 
 app = FastAPI()
@@ -25,7 +25,7 @@ async def home():
 #agents initialization
 perplexity_agent = PerplexityAgent()
 gemini_agent=GeminiAgent()
-deepseek_agent=DeepseekAgent()
+openRouterAgent=OpenRouterAgent()
 
 class ChatRequest(BaseModel):
     message : str
@@ -63,9 +63,17 @@ async def chat_gemini(request: ChatRequest):
     return ChatResponse(provider="gemini", response= reply)
 
 
-#Integration of deepseek LLM
+#Integration of deepseek LLM (Open Router)
 @app.post("/chat/deepseek",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
 
-    reply = await deepseek_agent.get_response(message=request.message)
+    reply = await openRouterAgent.get_response(message=request.message, model="deepseek/deepseek-r1-0528:free")
     return ChatResponse(provider="deepseek",response=reply)
+
+
+#Integration of qwen LLM (Open Router)
+@app.post("/chat/qwen",response_model=ChatResponse)
+async def chat_deepseek(request: ChatRequest):
+
+    reply = await openRouterAgent.get_response(message=request.message, model="qwen/qwen3-coder:free")
+    return ChatResponse(provider="qwen",response=reply)

@@ -10,12 +10,13 @@ from .base import BaseAgentModel
 load_dotenv()
 
 
-class DeepseekAgent(BaseAgentModel):
+class OpenRouterAgent(BaseAgentModel):
     def __init__(self):
-        self.model = "deepseek/deepseek-r1-0528:free"
+        self.model = ""
 
 
-    async def get_response(self,message):
+    async def get_response(self,message,model):
+        self.model=model
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
@@ -46,15 +47,15 @@ class DeepseekAgent(BaseAgentModel):
                         error_body = await response.json()
                     except Exception:
                         error_body = await response.text()
-                    print("Deepseek API error:", response.status_code, error_body)
-                    raise Exception(f"Deepseek API call failed: {error_body}")
+                    print("Open Router API error:", response.status_code, error_body)
+                    raise Exception(f"Open Router API call failed: {error_body}")
                 data = response.json()
                 # print("FULL Perplexity API raw response:", type(data))
                 return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
         #Exception handling
         except httpx.ReadTimeout:                   
-            raise Exception("Deepseek API timed out. Check network, endpoint, and API key.")
+            raise Exception("Open Router API timed out. Check network, endpoint, and API key.")
         except Exception as e:
             print("Probably other error",e)
             raise

@@ -36,3 +36,15 @@ export async function sendChatToDeepSeek(query) {
     console.log(data);
     return data
 }
+
+export async function sendChatToQwen(query) {
+    const result = await fetch('/chat/qwen',{
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: query }),
+    })
+
+    const data = await result.json();
+    console.log(data);
+    return data
+}

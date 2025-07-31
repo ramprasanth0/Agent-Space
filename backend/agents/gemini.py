@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import google.generativeai as genai
+from google.generativeai import types
 # import 
 
 
@@ -10,12 +11,17 @@ class GeminiAgent():
     def __init__(self):
         # Explicitly set up API key from env (loads from env variable automatically)
         # self.model_name = "gemini-2.5-flash"  # or any other valid model
-        self.model = genai.GenerativeModel("gemini-2.5-pro")
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
 
 
     def get_response(self, message: str) -> str:
-        response = self.model.generate_content(message)
-        return response.text
+        prompt = prompt = "Answer every prompt as concisely as possible, ideally 1-2 sentences.\n" + message
+        try:
+            response = self.model.generate_content(contents=prompt)
+            return response.text
+        except Exception as e:
+            print("GeminiAgent error:", repr(e))
+            raise
 
 
     # def get_response(self, message: str) -> str:

@@ -33,7 +33,7 @@ class PerplexityAgent(BaseAgentModel):
         payload = {
             "model": "sonar",  # Change from "sonar-pro" to "sonar"
             "messages": [
-                {"role": "system", "content": "provide answers in 15 words."},
+                {"role": "system", "content": "provide answers in less than 15 words."},
                 {"role": "user","content":message},
             ],
             # 'search_filter': 'very short answers'

@@ -20,7 +20,7 @@ class PerplexityAgent(BaseAgentModel):
     def info(self):
         return "perplexity"
 
-    async def get_response(self, message:str) -> str:
+    async def get_response(self, message:str):
         api_key = os.environ.get("PERPLEXITY_API_KEY")
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")

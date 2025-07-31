@@ -11,12 +11,14 @@ load_dotenv()
 
 
 class OpenRouterAgent(BaseAgentModel):
-    def __init__(self):
-        self.model = ""
+    MODEL_NAME_MAP = {
+        "R1": "deepseek/deepseek-r1-0528:free",
+        "Qwen": "qwen/qwen3-coder:free"
+    }
 
 
     async def get_response(self,message,model):
-        self.model=model
+        model_name = self.MODEL_NAME_MAP.get(model, "deepseek-chat")  # default/fallback
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
@@ -27,7 +29,7 @@ class OpenRouterAgent(BaseAgentModel):
         }
 
         payload = {
-            "model": self.model,  
+            "model": model_name,  
             "messages": [
                 {"role": "system", "content": "provide answers in less than 15 words."},
                 {"role": "user","content":message},

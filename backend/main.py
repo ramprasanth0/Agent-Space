@@ -30,6 +30,7 @@ perplexity_agent = PerplexityAgent()
 gemini_agent=GeminiAgent()
 openRouterAgent=OpenRouterAgent()
 
+#Single Agent API Request and Response model
 class ChatRequest(BaseModel):
     message : str
 
@@ -37,6 +38,7 @@ class ChatResponse(BaseModel):
     provider: str
     response: str
 
+#Multi Agent API Request and Response model
 class MultiAgentRequest(BaseModel):
     message: str
     agents: List[str]

@@ -48,3 +48,15 @@ export async function sendChatToQwen(query) {
     console.log(data);
     return data
 }
+
+export async function sendChatToMultiAgent(query, agents) {
+    const result = await fetch('/chat/multi_agent',{
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: query ,agents:agents}),
+    })
+
+    const data = await result.json();
+    console.log(data);
+    return data
+}

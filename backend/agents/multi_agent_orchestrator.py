@@ -6,10 +6,10 @@ from agents.gemini import GeminiAgent
 from agents.open_router import OpenRouterAgent
 
 AGENT_REGISTRY = {
-    "perplexity": PerplexityAgent(),
-    "gemini": GeminiAgent(),
-    "deepseek": OpenRouterAgent(),
-    "qwen": OpenRouterAgent(),
+    "Sonar": PerplexityAgent(),
+    "Gemini": GeminiAgent(),
+    "R1": OpenRouterAgent(),
+    "Qwen": OpenRouterAgent(),
     # add more agents here!
 }
 
@@ -24,13 +24,15 @@ class MultiAgentOrchestrator(BaseAgentModel):
         async def call_agent(name: str):
             agent = self.registry.get(name)
             try:
-                # PerplexityAgent might be async; GeminiAgent might be sync - handle both.
-                if(name=="perplexity" or name=="gemini"):
+                if name in ("R1", "Qwen"):    # These are OpenRouterAgent; pass the model key
+                    res = agent.get_response(message, model=name)  # model param decides backend model string
+                else:
                     res = agent.get_response(message)
-                elif(name=="deepseek" or name=="qwen"):
-                    res = agent.get_response(message)
+                    
                 if asyncio.iscoroutine(res):
                     response = await res
+                else:
+                    response = res
                 return {"provider": name, "response": response}
             except Exception as e:
                 return {"provider": name, "response": f"Error: {str(e)}"}

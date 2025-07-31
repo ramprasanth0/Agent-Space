@@ -77,7 +77,7 @@ async def chat_gemini(request: ChatRequest):
 @app.post("/chat/deepseek",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
 
-    reply = await openRouterAgent.get_response(message=request.message, model="deepseek/deepseek-r1-0528:free")
+    reply = await openRouterAgent.get_response(message=request.message, model="R1")
     return ChatResponse(provider="deepseek",response=reply)
 
 
@@ -85,7 +85,7 @@ async def chat_deepseek(request: ChatRequest):
 @app.post("/chat/qwen",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
 
-    reply = await openRouterAgent.get_response(message=request.message, model="qwen/qwen3-coder:free")
+    reply = await openRouterAgent.get_response(message=request.message, model="Qwen")
     return ChatResponse(provider="qwen",response=reply)
 
 @app.post("/chat/multi_agent",response_model=List[ChatResponse])

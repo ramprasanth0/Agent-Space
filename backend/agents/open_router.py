@@ -18,7 +18,7 @@ class OpenRouterAgent(BaseAgentModel):
 
 
     async def get_response(self,message,model):
-        model_name = self.MODEL_NAME_MAP.get(model, "deepseek-chat")  # default/fallback
+        model_name = self.MODEL_NAME_MAP.get(model)  # default/fallback
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
@@ -42,13 +42,13 @@ class OpenRouterAgent(BaseAgentModel):
                 response = await client.post(endpoint, headers=headers, json=payload)
                 try:
                     response.raise_for_status()
-                except Exception:
+                except httpx.HTTPStatusError:
                     # print("Perplexity API error:", response.status_code, await response.text())
                     # raise
                     try:
                         error_body = await response.json()
                     except Exception:
-                        error_body = await response.text()
+                        error_body = response.text
                     print("Open Router API error:", response.status_code, error_body)
                     raise Exception(f"Open Router API call failed: {error_body}")
                 data = response.json()

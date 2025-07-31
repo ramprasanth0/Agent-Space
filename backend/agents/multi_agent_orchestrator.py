@@ -14,7 +14,6 @@ AGENT_REGISTRY = {
 }
 
 
-
 class MultiAgentOrchestrator(BaseAgentModel):
 
     def __init__(self):

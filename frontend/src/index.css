@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* html, body, #root{
+  height: 100%;
+  overflow: hidden;
+} */
+
+@keyframes shooting {
+  0% { transform: translateX(0) rotate(40deg);}
+  100% { transform: translateX(110vw) rotate(40deg); opacity: 0; }
+}
+@keyframes tail {
+  0% { width: 0; }
+  30% { width: 100px; }
+  100% { width: 0; }
+}
+/* .shooting-star { ...your styles... } */
+.shooting-star {
+  position: absolute;
+  height: 2.5px;
+  background: linear-gradient(90deg, #5f91ff, rgba(0,0,255,0));
+  border-radius: 9999px;
+  box-shadow: 0 0 18px 6px #b6e3ff77, 0 0 9px 2px #fff;
+  opacity: 0.89;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.shooting-star::before {
+  content: '';
+  display: block;
+  position: absolute;
+  right: 0;
+  top: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(white 55%, #66b5ff 85%, transparent 100%);
+  opacity: 0.77;
+  filter: blur(2px);
+}
+/* Include your shooting, tail keyframes exactly as above */

@@ -1,4 +1,4 @@
-export default function InputBox({ input, loading, setInput, handleClick }) {
+export default function InputCard({ input, loading, setInput, handleClick }) {
     return (
         <div className="p-6 w-full">
             <label className="text-thistle-600 flex items-center font-medium gap-2 mb-4">

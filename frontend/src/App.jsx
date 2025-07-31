@@ -1,12 +1,12 @@
 // import { useState } from 'react'
 import './App.css'
 import Home from './pages/Home'
-import StarField from './components/StarField'
+import StarBackground from './components/StarField/StarBackground'
 
 export default function App() {
   return (
     <div className="min-h-screen bg-galaxy-night relative overflow-hidden">
-      <StarField/>
+      <StarBackground starCount={25}/>
       <Home />
     </div>
   )

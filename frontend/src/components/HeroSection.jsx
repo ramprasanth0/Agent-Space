@@ -1,7 +1,8 @@
 import { use, useState } from "react"
 import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, sendChatToMultiAgent} from "../api/Agents"
-import InputBox from './InputBox'
+import InputCard from './InputCard'
 import ModelSelector from "./ModelSelector";
+import ResponseCard from "./ResponseCard";
 
 export default function HeroSection() {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
@@ -32,12 +33,13 @@ export default function HeroSection() {
                     default:
                         data = { response: "Model not implemented yet." };
                 }
-                setResponse(data.response); // maintain as before
+                setResponse([{ provider: selectedModels[0], response: data.response }]);
             } else {
-                // Multi-agent case
-                data = await sendChatToMultiAgent(input, selectedModels);
-                setResponse(data); // this should be an array of { provider, response }
+                // Multi-agent mode
+                const data = await sendChatToMultiAgent(input, selectedModels);
+                setResponse(data);
             }
+
 
         } catch (err) {
             setResponse("Error: Unable to contact backend.");
@@ -48,24 +50,27 @@ export default function HeroSection() {
 
 
     return (
-        <div className="bg-pomp_and_power-200 rounded-3xl flex flex-col justify-center relative z-10">
+        <div className="bg-pomp_and_power-200 rounded-3xl max-w-7xl mx-auto mt-16 shadow-lg flex flex-col items-center z-10"
+     >
             <ModelSelector
                 models={models}
                 selected={selectedModels}
                 onSelect={setSelectedModels}
             />
-            <InputBox
+            <div className="w-full">
+            <InputCard
                 input={input}
                 loading={loading}
                 setInput={setInput}
                 handleClick={handleClick}
             />
+            </div>
             {/* {response && (
                 <div className="bg-english-violet-600 text-night shadow-md rounded-3xl mt-3 m-3 p-6 pt max-w-md w-full">
                     {response}
                 </div>
             )} */}
-            {Array.isArray(response) ? (
+            {/* {Array.isArray(response) ? (
                 <div className="flex flex-wrap gap-4 justify-center">
                     {response.map((res, idx) => (
                         <div key={res.provider || idx} className="bg-english-violet-600 text-night shadow-md rounded-3xl mt-3 m-3 p-6 pt max-w-md w-full">
@@ -76,7 +81,17 @@ export default function HeroSection() {
                 </div>
             ) : response && (
                 <div className="bg-english-violet-600 text-night shadow-md rounded-3xl mt-3 m-3 p-6 pt max-w-md w-full">{response}</div>
-            )}
+            )} */}
+            {/* <ResponseCard
+                response={response}
+                /> */}
+            <div className="w-full" style={{ flex: 1, minHeight: 0 }}>
+                <div className="max-h-[18rem] overflow-auto w-full">
+                    <ResponseCard response={response} />
+                </div>
+            </div>
+
         </div>
     )
 }
+

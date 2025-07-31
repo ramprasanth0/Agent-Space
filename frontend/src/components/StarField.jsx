@@ -42,8 +42,10 @@ function Star({ box, id }) {
         left: star.left + "%",
         top: star.top + "%",
         opacity: star.maxOpacity,
-        animation: `star-twinkle ${star.duration}s infinite`,
+        animationName: "star-twinkle",
+        animationDuration: `${star.duration}s`,
         animationDelay: `${star.delay}s`,
+        animationIterationCount: "infinite",
         filter: star.blur,
         pointerEvents: "none"
       }}

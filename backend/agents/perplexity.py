@@ -16,9 +16,9 @@ class PerplexityAgent(BaseAgentModel):
     #     self.api_key = os.environ.get("PERPLEXITY_API_KEY")
     #     self.endpoint = "https://api.perplexity.ai/chat/completions"
 
-    @property
-    def info(self):
-        return "perplexity"
+    # @property
+    # def info(self):
+    #     return "perplexity"
 
     async def get_response(self, message:str):
         api_key = os.environ.get("PERPLEXITY_API_KEY")

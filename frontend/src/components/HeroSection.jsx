@@ -9,7 +9,7 @@ export default function HeroSection() {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false)
     const [response, setResponse] = useState("");
-    const [selectedModel, setSelectedModel] =useState(models[0])
+    const [selectedModel, setSelectedModel] = useState(models[0])
 
     const handleClick = async (e) => {
         e.preventDefault();
@@ -35,11 +35,11 @@ export default function HeroSection() {
 
 
     return (
-        <div className="bg-pomp_and_power-300 rounded-3xl flex flex-col justify-center relative z-10">
-            <ModelSelector 
+        <div className="bg-pomp_and_power-200 rounded-3xl flex flex-col justify-center relative z-10">
+            <ModelSelector
                 models={models}
-                selected={selectedModel} 
-                onSelect={setSelectedModel} 
+                selected={selectedModel}
+                onSelect={setSelectedModel}
             />
             <InputBox
                 input={input}
@@ -48,7 +48,7 @@ export default function HeroSection() {
                 handleClick={handleClick}
             />
             {response && (
-                <div className="bg-english-violet-700 text-night shadow-md rounded-3xl mt-3 m-3 p-6 pt max-w-md w-full">
+                <div className="bg-english-violet-600 text-night shadow-md rounded-3xl mt-3 m-3 p-6 pt max-w-md w-full">
                     {response}
                 </div>
             )}

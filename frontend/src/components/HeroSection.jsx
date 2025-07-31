@@ -1,5 +1,5 @@
 import { use, useState } from "react"
-import { sendChatToPerplexity } from "../api/Agents"
+import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek } from "../api/Agents"
 import InputBox from './InputBox'
 import ModelSelector from "./ModelSelector";
 
@@ -16,12 +16,24 @@ export default function HeroSection() {
         setLoading(true)
         setResponse("")
         console.log(input)
+        let data
         try {
-            // const data = await sendChatToPerplexity(input);
+            if(selectedModel=="Sonar"){
+                data = await sendChatToPerplexity(input);
+            }
+            else if (selectedModel === "Gemini") {
+                data = await sendChatToGemini(input);
+            }
+            else if (selectedModel === "R1") {
+                data = await sendChatToDeepSeek(input);
+            }
+            else {
+                data = { response: "Model not implemented yet." };
+            }
             // console.log(data)
 
             //for testing:
-            const data = { response: "France is located in Western Europe, bordered by Belgium, Luxembourg, Germany, Switzerland, Italy, Monaco, Spain, and Andorra, with coasts on the Mediterranean Sea, Atlantic Ocean, and English Channel[1][2][4]." };
+            // const data = { response: "France is located in Western Europe, bordered by Belgium, Luxembourg, Germany, Switzerland, Italy, Monaco, Spain, and Andorra, with coasts on the Mediterranean Sea, Atlantic Ocean, and English Channel[1][2][4]." };
 
 
             setResponse(data.response);

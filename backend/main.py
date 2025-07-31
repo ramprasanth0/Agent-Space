@@ -3,9 +3,12 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
+from typing import List
+
 from agents.perplexity import PerplexityAgent
 from agents.gemini import GeminiAgent
 from agents.open_router import OpenRouterAgent
+from agents.multi_agent_orchestrator import MultiAgentOrchestrator
 
 
 app = FastAPI()
@@ -33,6 +36,11 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     provider: str
     response: str
+
+class MultiAgentRequest(BaseModel):
+    message: str
+    agents: List[str]
+
 
 #Integration of Perplexity LLM
 @app.post("/chat/perplexity",response_model=ChatResponse)
@@ -77,3 +85,9 @@ async def chat_deepseek(request: ChatRequest):
 
     reply = await openRouterAgent.get_response(message=request.message, model="qwen/qwen3-coder:free")
     return ChatResponse(provider="qwen",response=reply)
+
+@app.post("/chat/multi_agent",response_model=List[ChatResponse])
+async def chat_unified(request: MultiAgentRequest):
+    orchestrator = MultiAgentOrchestrator()
+    reply= await orchestrator.get_responses(request.message, request.agents)
+    return reply

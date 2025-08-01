@@ -3,8 +3,8 @@ import HeroSection from "../components/HeroSection"
 export default function Home() {
   return (
     <div>
-      <header className="text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 pb-28 pt-20">
-        <h1 className="text-thistle font-minecraft text-5xl md:text-4xl lg:text-5xl font-extrabold">
+      <header className="text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20">
+        <h1 className="text-tekhelet-900 font-minecraft text-5xl md:text-4xl lg:text-5xl font-extrabold">
           Agent Space
         </h1>
       </header>

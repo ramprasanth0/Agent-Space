@@ -5,9 +5,27 @@ import StarBackground from './components/StarField/StarBackground'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-galaxy-night relative overflow-hidden">
-      <StarBackground starCount={25}/>
-      <Home />
+
+    //static image as background
+    // <div className="min-h-screen bg-[url(./assets/background.png)] bg-cover bg-center relative overflow-hidden">
+
+
+    //video clip as background
+
+    <div className='min-h-screen relative overflow-hidden'>
+      <video
+        src="/assets/background_video.mp4" // place video in `public/assets/`
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover bg-black/50 z-10"
+      />
+      <StarBackground starCount={25} />
+      <div
+        className="relative z-30">
+        <Home />
+      </div>
     </div>
   )
 }

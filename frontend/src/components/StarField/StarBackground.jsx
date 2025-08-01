@@ -65,7 +65,7 @@ import React, { useState, useEffect } from "react";
 import StarField from "./StarField";
 import ShootingStar from "./ShootingStar";
 
-export default function StarBackground({ starCount=5 }) {
+export default function StarBackground({ starCount = 5 }) {
   const [shootingStars, setShootingStars] = useState([]);
   useEffect(() => {
     let running = true;
@@ -88,7 +88,7 @@ export default function StarBackground({ starCount=5 }) {
   return (
     <>
       <div className="starfield-bg" />
-      <StarField starCount={starCount} />
+      {/* <StarField starCount={starCount} /> */}
       {shootingStars.map(key => <ShootingStar key={key} />)}
       <style>{`
         .starfield-bg {

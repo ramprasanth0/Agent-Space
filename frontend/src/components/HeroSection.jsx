@@ -1,5 +1,5 @@
 import { use, useState } from "react"
-import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, sendChatToMultiAgent} from "../api/Agents"
+import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, sendChatToMultiAgent } from "../api/Agents"
 import InputCard from './InputCard'
 import ModelSelector from "./ModelSelector";
 import ResponseCard from "./ResponseCard";
@@ -50,20 +50,20 @@ export default function HeroSection() {
 
 
     return (
-        <div className="bg-pomp_and_power-200 rounded-3xl max-w-7xl mx-auto mt-16 shadow-lg flex flex-col items-center z-10"
-     >
+        <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto mt-16 shadow-lg flex flex-col items-center z-20"
+        >
             <ModelSelector
                 models={models}
                 selected={selectedModels}
                 onSelect={setSelectedModels}
             />
             <div className="w-full">
-            <InputCard
-                input={input}
-                loading={loading}
-                setInput={setInput}
-                handleClick={handleClick}
-            />
+                <InputCard
+                    input={input}
+                    loading={loading}
+                    setInput={setInput}
+                    handleClick={handleClick}
+                />
             </div>
             {/* {response && (
                 <div className="bg-english-violet-600 text-night shadow-md rounded-3xl mt-3 m-3 p-6 pt max-w-md w-full">
@@ -86,7 +86,7 @@ export default function HeroSection() {
                 response={response}
                 /> */}
             <div className="w-full" style={{ flex: 1, minHeight: 0 }}>
-                <div className="max-h-[18rem] overflow-auto w-full">
+                <div className="max-h-[18rem] overflow-auto w-full no-scrollbar">
                     <ResponseCard response={response} />
                 </div>
             </div>

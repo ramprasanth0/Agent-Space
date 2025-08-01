@@ -12,7 +12,7 @@ export default function ModelSelector({ models, selected, onSelect }) {
         R1: deepSeek,
         Gemini: gemini,
         Qwen: qwen,
-        };
+    };
 
     // return (
     //     <div className="bg-pomp_and_power-300 m-3 rounded-full flex gap-2 p-2 justify-center">
@@ -51,7 +51,7 @@ export default function ModelSelector({ models, selected, onSelect }) {
     };
 
     return (
-        <div className="bg-pomp_and_power-300 m-3 rounded-full flex gap-2 p-2 justify-center">
+        <div className="bg-oxford_blue-700 m-3 rounded-full flex gap-2 p-2 justify-center">
             {models.map((m) => (
                 <button
                     type="button"
@@ -59,8 +59,8 @@ export default function ModelSelector({ models, selected, onSelect }) {
                     onClick={() => toggleModel(m)}
                     className={`flex max-w-xs px-4 py-2 rounded-full transition font-semibold border
                         ${selected.includes(m)
-                            ? "bg-english-violet-900 border-none text-night-100"
-                            : "bg-pomp_and_power-200 border-none text-white hover:bg-english-violet-800 hover:text-black"}
+                            ? "bg-tekhelet-900 border-none text-night-100"
+                            : "bg-oxford_blue-500 border-none text-white hover:bg-tekhelet-800 hover:text-black"}
                     `}
                 >
                     <img src={modelIcons[m]} alt={`${m} icon`} className="w-6 h-6 mr-2" draggable="false" />

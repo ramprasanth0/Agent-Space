@@ -1,7 +1,7 @@
 export default function InputCard({ input, loading, setInput, handleClick }) {
     return (
         <div className="p-6 w-full">
-            <label className="text-thistle-600 flex items-center font-medium gap-2 mb-4">
+            <label className="text-purpureus-900 flex items-center font-medium gap-2 mb-4">
                 <div className="shrink-0">
                     Your Unhinged Queries:
                 </div>
@@ -13,7 +13,7 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
                 />
             </label>
             <button
-                className="mt-4 w-full bg-thistle-700 text-night rounded-full py-2 hover:bg-thistle-100 hover:text-white transition"
+                className="mt-4 w-full bg-tekhelet-900 text-night rounded-full py-2 hover:bg-tekhelet-600 hover:text-white transition"
                 onClick={handleClick}
                 disabled={loading || !input.trim()}
             >

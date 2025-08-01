@@ -71,17 +71,17 @@ function randomBetween(a, b) {
 const DURATION = 1800; // ms
 
 export default function ShootingStar() {
-  const w = typeof window !== "undefined" ? window.innerWidth  : 1440;
+  const w = typeof window !== "undefined" ? window.innerWidth : 1440;
   const h = typeof window !== "undefined" ? window.innerHeight : 900;
   const [config] = useState(() => {
-    const angle   = randomBetween(37, 47);
+    const angle = randomBetween(35, 47);
     const radians = (angle * Math.PI) / 180;
-    const length  = randomBetween(10, 100);
-    const height  = randomBetween(1.2, 3.5);
-    const startX  = randomBetween(-180, w * 0.6);
-    const startY  = randomBetween(10, h * 0.6);
-    const deltaX  = Math.cos(radians) * (w + 400);
-    const deltaY  = Math.sin(radians) * (w + 400);
+    const length = randomBetween(10, 100);
+    const height = randomBetween(1.2, 3.5);
+    const startX = randomBetween(-180, w * 0.6);
+    const startY = randomBetween(20, h * 0.6);
+    const deltaX = Math.cos(radians) * (w + 400);
+    const deltaY = Math.sin(radians) * (w + 400);
     return { startX, startY, deltaX, deltaY, angle, length, height };
   });
 
@@ -99,7 +99,7 @@ export default function ShootingStar() {
       const progress = Math.min((ts - start) / DURATION, 1);
       setStyle({
         left: config.startX + config.deltaX * progress,
-        top:  config.startY + config.deltaY * progress,
+        top: config.startY + config.deltaY * progress,
         opacity: 1 - progress
       });
       if (progress < 1) {
@@ -112,7 +112,7 @@ export default function ShootingStar() {
 
   return (
     <div
-      className="shooting-star"
+      className="shooting-star z-20"
       style={{
         position: "absolute",
         width: config.length + "px",

@@ -16,7 +16,7 @@
 
 
 ## 📸 Preview
-![Preview Screenshot](frontend/src/assets/preview-Screenshot.png)
+![Preview Screenshot](frontend/src/assets/preview-gif.gif)
 
 
 &nbsp;

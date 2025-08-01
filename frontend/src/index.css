@@ -8,25 +8,42 @@
 } */
 
 @keyframes shooting {
-  0% { transform: translateX(0) rotate(40deg);}
-  100% { transform: translateX(110vw) rotate(40deg); opacity: 0; }
+  0% {
+    transform: translateX(0) rotate(40deg);
+  }
+
+  100% {
+    transform: translateX(110vw) rotate(40deg);
+    opacity: 0;
+  }
 }
+
 @keyframes tail {
-  0% { width: 0; }
-  30% { width: 100px; }
-  100% { width: 0; }
+  0% {
+    width: 0;
+  }
+
+  30% {
+    width: 100px;
+  }
+
+  100% {
+    width: 0;
+  }
 }
+
 /* .shooting-star { ...your styles... } */
 .shooting-star {
   position: absolute;
   height: 2.5px;
-  background: linear-gradient(90deg, #5f91ff, rgba(0,0,255,0));
+  background: linear-gradient(90deg, #5f91ff, rgba(0, 0, 255, 0));
   border-radius: 9999px;
   box-shadow: 0 0 18px 6px #b6e3ff77, 0 0 9px 2px #fff;
   opacity: 0.89;
   pointer-events: none;
   will-change: transform, opacity;
 }
+
 .shooting-star::before {
   content: '';
   display: block;
@@ -40,4 +57,18 @@
   opacity: 0.77;
   filter: blur(2px);
 }
+
 /* Include your shooting, tail keyframes exactly as above */
+
+/* Hide scrollbar in Chrome, Safari, and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar in IE, Edge, and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}

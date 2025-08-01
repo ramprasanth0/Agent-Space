@@ -7,7 +7,7 @@ export default function ResponseCard({ response }) {
     return (
       <div className="">
         <div
-          className="bg-english-violet-600 text-night m-6 rounded-3xl p-6"
+          className="bg-tekhelet-700 text-night m-6 rounded-3xl p-6"
         >
           <div className="font-bold mb-2">{res.provider}</div>
           <div>{res.response}</div>
@@ -20,17 +20,17 @@ export default function ResponseCard({ response }) {
     response.length === 2
       ? "grid-cols-2"
       : response.length === 3
-      ? "grid-cols-3"
-      : response.length === 4
-      ? "grid-cols-4"
-      : "grid-cols-1";
+        ? "grid-cols-3"
+        : response.length === 4
+          ? "grid-cols-4"
+          : "grid-cols-1";
 
   return (
     <div className={`grid ${gridColsClass} gap-4 p-6`}>
       {response.map((res, idx) => (
         <div
           key={res.provider || idx}
-          className="bg-english-violet-600 text-night rounded-3xl p-3"
+          className="bg-tekhelet-700 text-night rounded-3xl p-3"
         >
           <div className="font-bold mb-2">{res.provider}</div>
           <div className="m-2">{res.response}</div>

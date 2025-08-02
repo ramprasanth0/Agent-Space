@@ -1,6 +1,59 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import "tailwindcss";
+
+
+@theme {
+  /* Accent Colours - Tekhelet */
+  --color-tekhelet-100: #10091c;
+  --color-tekhelet-200: #211237;
+  --color-tekhelet-300: #311b53;
+  --color-tekhelet-400: #42246f;
+  --color-tekhelet-500: #522d89;
+  --color-tekhelet-600: #703dbc;
+  --color-tekhelet-700: #936bcf;
+  --color-tekhelet-800: #b79cdf;
+  --color-tekhelet-900: #dbceef;
+
+  /* Accent Colours - Purpureus */
+  --color-purpureus-100: #1c0f22;
+  --color-purpureus-200: #391f45;
+  --color-purpureus-300: #552e67;
+  --color-purpureus-400: #723e8a;
+  --color-purpureus-500: #904eae;
+  --color-purpureus-600: #a56fbe;
+  --color-purpureus-700: #bc93cf;
+  --color-purpureus-800: #d2b7df;
+  --color-purpureus-900: #e9dbef;
+
+  /* Secondary - Oxford Blue */
+  --color-oxford_blue-100: #03020b;
+  --color-oxford_blue-200: #060516;
+  --color-oxford_blue-300: #080721;
+  --color-oxford_blue-400: #0b0a2b;
+  --color-oxford_blue-500: #0e0c36;
+  --color-oxford_blue-600: #1d1660;
+  --color-oxford_blue-700: #3429af;
+  --color-oxford_blue-800: #736ddf;
+  --color-oxford_blue-900: #b9b6ef;
+
+  /* Primary - Russian Violet */
+  --color-russian_violet-100: #04030e;
+  --color-russian_violet-200: #08071c;
+  --color-russian_violet-300: #0d0a2a;
+  --color-russian_violet-400: #110d38;
+  --color-russian_violet-500: #161148;
+  --color-russian_violet-600: #29218b;
+  --color-russian_violet-700: #3e31cf;
+  --color-russian_violet-800: #7f76df;
+  --color-russian_violet-900: #bfbaef;
+
+
+  /* Font family */
+  --font-minecraft: "Press Start 2P"
+}
 
 /* html, body, #root{
   height: 100%;

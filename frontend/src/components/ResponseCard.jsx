@@ -10,7 +10,7 @@ export default function ResponseCard({ response }) {
           className="bg-tekhelet-700 text-night m-6 rounded-3xl p-6"
         >
           <div className="font-bold mb-2">{res.provider}</div>
-          <div>{res.response}</div>
+          <div className="overflow-y-hidden">{res.response}</div>
         </div>
       </div>
     );

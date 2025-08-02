@@ -13,6 +13,7 @@ export default function App() {
     //video clip as background
 
     <div className='min-h-screen relative overflow-hidden'>
+      {/* <div className="absolute inset-0 overflow-hidden z-0"> */}
       <video
         src="/assets/background_video.mp4" // place video in `public/assets/`
         autoPlay
@@ -26,6 +27,7 @@ export default function App() {
         className="relative z-30">
         <Home />
       </div>
+      {/* </div> */}
     </div>
   )
 }

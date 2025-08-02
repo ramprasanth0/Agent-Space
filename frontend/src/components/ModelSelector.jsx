@@ -59,7 +59,7 @@ export default function ModelSelector({ models, selected, onSelect }) {
                     onClick={() => toggleModel(m)}
                     className={`flex max-w-xs px-4 py-2 rounded-full transition font-semibold border
                         ${selected.includes(m)
-                            ? "bg-tekhelet-900 border-none text-night-100"
+                            ? "bg-tekhelet-900 border-none text-black"
                             : "bg-oxford_blue-500 border-none text-white hover:bg-tekhelet-800 hover:text-black"}
                     `}
                 >

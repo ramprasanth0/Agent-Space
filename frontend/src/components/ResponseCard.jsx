@@ -1,29 +1,27 @@
-export default function ResponseCard({ response }) {
+export default function ResponseCard({ response, loadingModels  }) {
   if (!Array.isArray(response) || response.length === 0) return null;
 
-  if (response.length === 1) {
-    // Single agent: center, not grid, can stretch wider if desired
-    const res = response[0];
-    return (
-      <div className="">
-        <div
-          className="bg-tekhelet-700 text-night m-6 rounded-3xl p-6"
-        >
-          <div className="font-bold mb-2">{res.provider}</div>
-          <div className="overflow-y-hidden">{res.response}</div>
-        </div>
-      </div>
-    );
-  }
+  // if (response.length === 1) {
+  //   // Single agent: center, not grid, can stretch wider if desired
+  //   const res = response[0];
+  //   return (
+  //     <div className="">
+  //       <div
+  //         className="bg-tekhelet-700 text-night m-6 rounded-3xl p-6"
+  //       >
+  //         <div className="font-bold mb-2">{res.provider}</div>
+  //         <div className="overflow-y-hidden">{res.response}</div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const gridColsClass =
-    response.length === 2
-      ? "grid-cols-2"
-      : response.length === 3
-        ? "grid-cols-3"
-        : response.length === 4
-          ? "grid-cols-4"
-          : "grid-cols-1";
+    response.length === 1 ? "grid-cols-1"
+    : response.length === 2 ? "grid-cols-2"
+    : response.length === 3 ? "grid-cols-3"
+    : response.length === 4 ? "grid-cols-4"
+    : "grid-cols-1";
 
   return (
     <div className={`grid ${gridColsClass} gap-4 p-6`}>
@@ -32,8 +30,20 @@ export default function ResponseCard({ response }) {
           key={res.provider || idx}
           className="bg-tekhelet-700 text-night rounded-3xl p-3"
         >
-          <div className="font-bold mb-2">{res.provider}</div>
-          <div className="m-2">{res.response}</div>
+          <div className="font-bold text-black mb-2">{res.provider}</div>
+
+          {loadingModels.includes(res.provider) || res.response === null ? (
+            <div className="space-y-2 w-full">
+              <div className="skeleton bg-white h-4 w-3/4"></div>
+              <div className="skeleton bg-white h-6 w-full"></div>
+              <div className="skeleton bg-white h-6 w-full"></div>
+              {/* <div className="skeleton bg-white h-6 w-full"></div> */}
+            </div>
+          ) : (
+            <div className="m-2 overflow-x-auto">{res.response}</div>
+          )}
+
+          {/* <div className="m-2">{res.response}</div> */}
         </div>
       ))}
     </div>

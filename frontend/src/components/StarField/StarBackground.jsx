@@ -88,7 +88,7 @@ export default function StarBackground({ starCount = 5 }) {
   return (
     <>
       <div className="starfield-bg" />
-      {/* <StarField starCount={starCount} /> */}
+      <StarField starCount={starCount} />
       {shootingStars.map(key => <ShootingStar key={key} />)}
       <style>{`
         .starfield-bg {

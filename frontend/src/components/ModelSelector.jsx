@@ -14,44 +14,23 @@ export default function ModelSelector({ models, selected, onSelect }) {
         Qwen: qwen,
     };
 
-    // return (
-    //     <div className="bg-pomp_and_power-300 m-3 rounded-full flex gap-2 p-2 justify-center">
-    //         {models.map((m) => (
-    //             <button
-    //                 key={m}
-    //                 onClick={() => onSelect(m)}
-    //                 className={`flex max-w-xs px-4 py-2 rounded-full transition font-semibold border
-    //                 // ${selected === m ? "active" : ""}
-    //                 ${selected === m
-    //                         ? "bg-english-violet-900 border-none text-night-100"
-    //                         : "bg-pomp_and_power-200 border-none text-white hover:bg-english-violet-800 hover:text-black"}
-    //                 `}
-    //             >
-    //                 {/* Image placed here */}
-    //                 {/* <img src={modelIcons[m]} alt="" className="w-6 h-6 mr-2 inline-block" /> */}
-    //                 <img
-    //                     src={modelIcons[m]}
-    //                     alt={`${m} icon`}
-    //                     className="w-6 h-6 mr-2"
-    //                     draggable="false"
-    //                 />
-    //                 {m}
-    //             </button>
-    //         ))}
-    //     </div>
-    // );
-
-
-    const toggleModel = (m) => {
-        if (selected.includes(m)) {
-            onSelect(selected.filter(x => x !== m));
-        } else {
-            onSelect([...selected, m]);
-        }
-    };
+    // const toggleModel = (m) => {
+    //     if (selected.includes(m)) {
+    //         onSelect(selected.filter(x => x !== m));
+    //     } else {
+    //         onSelect([...selected, m]);
+    //     }
+    // };
+    function toggleModel(model) {
+    if (selected.includes(model)) {
+      onSelect(selected.filter(m => m !== model));
+    } else {
+      onSelect([...selected, model]);
+    }
+    }
 
     return (
-        <div className="bg-oxford_blue-700 m-3 rounded-full flex gap-2 p-2 justify-center">
+        <div className="bg-oxford_blue-700 my-3 mr-3 ml-2 rounded-full flex gap-2 p-2 justify-center">
             {models.map((m) => (
                 <button
                     type="button"

@@ -13,7 +13,7 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
                 />
             </label>
             <button
-                className="mt-4 w-full bg-tekhelet-900 text-night rounded-full py-2 hover:bg-tekhelet-600 hover:text-white transition"
+                className="mt-4 w-full bg-tekhelet-900 text-black rounded-full py-2 hover:bg-tekhelet-600 hover:text-white transition"
                 onClick={handleClick}
                 disabled={loading || !input.trim()}
             >

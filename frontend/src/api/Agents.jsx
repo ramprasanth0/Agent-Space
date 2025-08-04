@@ -1,11 +1,11 @@
 
 
 //API connectors for agents
-export async function sendChatToPerplexity(query) {
+export async function sendChatToPerplexity(query, messages, mode) {
     const result = await fetch('/chat/perplexity',{
         method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query }),
+        body: JSON.stringify({ message: query, history:messages, mode: mode }),
     })
 
     const data = await result.json();
@@ -13,11 +13,11 @@ export async function sendChatToPerplexity(query) {
     return data
 }
 
-export async function sendChatToGemini(query) {
+export async function sendChatToGemini(query, messages, mode) {
     const result = await fetch('/chat/gemini',{
         method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query }),
+        body: JSON.stringify({ message: query, history:messages, mode: mode  }),
     })
 
     const data = await result.json();
@@ -25,11 +25,11 @@ export async function sendChatToGemini(query) {
     return data
 }
 
-export async function sendChatToDeepSeek(query) {
+export async function sendChatToDeepSeek(query, messages, mode) {
     const result = await fetch('/chat/deepseek',{
         method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query }),
+        body: JSON.stringify({ message: query, history: messages, mode: mode  }),
     })
 
     const data = await result.json();
@@ -37,11 +37,11 @@ export async function sendChatToDeepSeek(query) {
     return data
 }
 
-export async function sendChatToQwen(query) {
+export async function sendChatToQwen(query, messages, mode) {
     const result = await fetch('/chat/qwen',{
         method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query }),
+        body: JSON.stringify({ message: query, history :messages, mode: mode  }),
     })
 
     const data = await result.json();

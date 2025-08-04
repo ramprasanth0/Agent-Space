@@ -147,7 +147,6 @@ async def chat_qwen(request: ChatRequest):
         )  
 
 
-
 ## Multi-agent request API
 
 @app.post("/chat/multi_agent",response_model=List[ChatResponse])

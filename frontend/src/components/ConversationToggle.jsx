@@ -2,16 +2,21 @@ import oneLinerIcon from '../assets/bolt-icon.svg'
 import conversationIcon from '../assets/conversation-icon-cropped.svg'
 
 
-export default function ConversationToggle() {
-  // DaisyUI listens to data-theme, but prefers using their dropdown/switch logic and a button:
-  function setConversationMode() {
+export default function ConversationToggle({mode,setMode}) {
+  function setConversationMode(e) {
     //logic to toggle conversation mode
+    setMode(e.target.checked?"conversation" : "one-liner")
   }
   return (
     <div className="ml-4">
         <label className="swap swap-rotate tooltip" data-tip="Switch mode">
             {/* this hidden checkbox controls the state */}
-            <input type="checkbox" className="conversation-controller"/>
+            <input 
+                type="checkbox" 
+                className="conversation-controller"
+                onChange={setConversationMode}
+                checked={mode === "conversation"}
+            />
 
             {/* One-liner icon: shows when OFF */}
             <img
@@ -31,27 +36,6 @@ export default function ConversationToggle() {
                 draggable="false"
             />
         </label>
-
-        {/* <label className="swap swap-rotate tooltip"> */}
-            {/* Checkbox controls swap state */}
-            {/* <input type="checkbox" className="conversation-controller" value="" /> */}
-
-            {/* Conversation image: shows when OFF */}
-            {/* <img
-                src={conversationIcon}
-                alt="Conversation Mode"
-                className="swap-off h-10 w-10"
-                draggable="false"
-            /> */}
-
-            {/* One-liner image: shows when ON */}
-            {/* <img
-                src={oneLinerIcon}
-                alt="One-liner Mode"
-                className="swap-on h-10 w-10"
-                draggable="false"
-            />
-        </label> */}
     </div>
   );
 }

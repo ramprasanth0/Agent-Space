@@ -5,7 +5,7 @@ import perplexity from '../assets/perplexity.svg'
 import qwen from '../assets/qwen.svg'
 
 
-export default function ModelSelector({ models, selected, onSelect }) {
+export default function ModelSelector({ models, selected, setSelectedModels, mode , resetMessages }) {
     // const modelIcons = {Sonar:perplexity, Gemini:gemini, R1:deepSeek, Qwen:qwen}
     const modelIcons = {
         Sonar: perplexity,
@@ -14,19 +14,19 @@ export default function ModelSelector({ models, selected, onSelect }) {
         Qwen: qwen,
     };
 
-    // const toggleModel = (m) => {
-    //     if (selected.includes(m)) {
-    //         onSelect(selected.filter(x => x !== m));
-    //     } else {
-    //         onSelect([...selected, m]);
-    //     }
-    // };
     function toggleModel(model) {
-    if (selected.includes(model)) {
-      onSelect(selected.filter(m => m !== model));
-    } else {
-      onSelect([...selected, model]);
-    }
+        if (mode === "conversation") {
+        // Only one model allowed
+            setSelectedModels([model]);
+            resetMessages([]);
+        } else {
+        // Multi-select as before
+            if (selected.includes(model)) {
+                setSelectedModels(selected.filter(m => m !== model));
+            } else {
+                setSelectedModels([...selected, model]);
+            }
+        }
     }
 
     return (

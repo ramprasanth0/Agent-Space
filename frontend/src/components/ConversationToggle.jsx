@@ -2,10 +2,11 @@ import oneLinerIcon from '../assets/bolt-icon.svg'
 import conversationIcon from '../assets/conversation-icon-cropped.svg'
 
 
-export default function ConversationToggle({mode,setMode}) {
+export default function ConversationToggle({ mode, setMode}) {
   function setConversationMode(e) {
     //logic to toggle conversation mode
     setMode(e.target.checked?"conversation" : "one-liner")
+    // setAlertMsg(e.target.checked ? "Conversation mode enabled (switching models will reset conversation history)" : "One-liner mode enabled");
   }
   return (
     <div className="ml-4">

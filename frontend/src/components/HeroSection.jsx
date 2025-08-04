@@ -1,11 +1,12 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, sendChatToMultiAgent } from "../api/Agents"
 import InputCard from './InputCard'
 import ModelSelector from "./ModelSelector";
 import ResponseCard from "./ResponseCard";
 import ConversationToggle from "./ConversationToggle";
+// import Alert from "./Alert";
 
-export default function HeroSection() {
+export default function HeroSection({ alertRef }) {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
 
     // state var for model data from user
@@ -21,20 +22,28 @@ export default function HeroSection() {
     const [mode, setMode] = useState("one-liner");
     //state var for history of messages for conversation mode
     const [messages, setMessages] = useState([]); // array of { role, content }
+    //state var for alert message
+    // const [alertMsg, setAlertMsg] = useState("");
+    //
+    // const alertRef = useRef();
 
     function handleModeChange(newMode) {
-            if (
-                newMode === "conversation" && 
-                selectedModels.length !== 1
-            ) {
-                // If switching to conversation with none or more than one model selected → reset to empty
-                setSelectedModels([]);
-            }
-            setMode(newMode);
+        if ( newMode === "conversation" && selectedModels.length !== 1){
+            // If switching to conversation with none or more than one model selected → reset to empty
+            setSelectedModels([]);
         }
+        setMode(newMode);
+        //Show alert on toggle
+        alertRef.current.show(
+            mode === "conversation"
+                ? "Conversation mode enabled (switching model will reset history)"
+                : "One-liner mode enabled"
+        );
+    }
 
     const handleClick = async (e) => {
         e.preventDefault();
+
         // Make a copy of current history plus this turn
         const updatedMessages = [...messages, { role: "user", content: input }];
         setMessages(updatedMessages);
@@ -76,11 +85,12 @@ export default function HeroSection() {
     };
 
     return (
-        <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto mt-16 shadow-lg flex flex-col items-center z-20">
-            <div className="flex items-center  w-full mb-4">
+        <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto mt-5 shadow-lg flex flex-col items-center z-20 relative">
+            <div className="flex items-center  w-full mb-4">  
                 <ConversationToggle
                     mode={mode}
                     setMode={handleModeChange}
+                    // setAlertMsg={setAlertMsg}
                 />
                 <ModelSelector
                     models={models}

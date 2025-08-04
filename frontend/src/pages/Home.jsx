@@ -1,7 +1,10 @@
+import { useRef } from "react"
 import HeroSection from "../components/HeroSection"
 import MoodToggle from "../components/MoodToggle"
+import Alert from "../components/Alert"
 
 export default function Home() {
+  const alertRef = useRef();
   return (
     <div>
       <header className="text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20">
@@ -21,8 +24,9 @@ export default function Home() {
         Agent Space
       </h1>
     </header> */} 
-      <main className="flex justify-center">
-        <HeroSection />
+      <main className="flex justify-center relative mt-20">
+        <Alert ref={alertRef} />
+        <HeroSection alertRef={alertRef}/>
       </main>
     </div>
   )

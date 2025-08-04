@@ -22,6 +22,17 @@ export default function HeroSection() {
     //state var for history of messages for conversation mode
     const [messages, setMessages] = useState([]); // array of { role, content }
 
+    function handleModeChange(newMode) {
+            if (
+                newMode === "conversation" && 
+                selectedModels.length !== 1
+            ) {
+                // If switching to conversation with none or more than one model selected → reset to empty
+                setSelectedModels([]);
+            }
+            setMode(newMode);
+        }
+
     const handleClick = async (e) => {
         e.preventDefault();
         // Make a copy of current history plus this turn
@@ -32,6 +43,7 @@ export default function HeroSection() {
         setLoadingModels(selectedModels);
         // Show empty skeleton cards immediately
         setResponse(selectedModels.map(m => ({ provider: m, response: null })));
+
 
         // "Fan out" async, each updates itself…
         selectedModels.forEach(async (model) => {
@@ -68,7 +80,7 @@ export default function HeroSection() {
             <div className="flex items-center  w-full mb-4">
                 <ConversationToggle
                     mode={mode}
-                    setMode={setMode}
+                    setMode={handleModeChange}
                 />
                 <ModelSelector
                     models={models}

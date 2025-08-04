@@ -108,8 +108,6 @@ async def chat_gemini(request: ChatRequest):
         )
 
 
-
-
 ####---------------------------- Open router models -----------------------------###
 #Integration of deepseek LLM (Open Router)
 @app.post("/chat/deepseek",response_model=ChatResponse)
@@ -120,7 +118,7 @@ async def chat_deepseek(request: ChatRequest):
     else:
         history_payload = history_normalized + [{"role": "user", "content": request.message}]
     try:
-        reply = await openRouterAgent.get_response(message=request.message, model="R1")
+        reply = await openRouterAgent.get_response(message=request.message, model="R1", history=history_payload)
         return ChatResponse(provider="deepseek",response=reply)
     except Exception as e:
         print("Deepseek Agent Error",e)
@@ -139,7 +137,7 @@ async def chat_qwen(request: ChatRequest):
     else:
         history_payload = history_normalized + [{"role": "user", "content": request.message}]
     try:
-        reply = await openRouterAgent.get_response(message=request.message, model="Qwen")
+        reply = await openRouterAgent.get_response(message=request.message, model="Qwen", history=history_payload)
         return ChatResponse(provider="qwen",response=reply)
     except Exception as e:
         print("Qwen Agent Error",e)

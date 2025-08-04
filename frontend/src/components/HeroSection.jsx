@@ -28,7 +28,7 @@ export default function HeroSection({ alertRef }) {
     // const alertRef = useRef();
 
     function handleModeChange(newMode) {
-        if ( newMode === "conversation" && selectedModels.length !== 1){
+        if (newMode === "conversation" && selectedModels.length !== 1) {
             // If switching to conversation with none or more than one model selected → reset to empty
             setSelectedModels([]);
         }
@@ -36,8 +36,8 @@ export default function HeroSection({ alertRef }) {
         //Show alert on toggle
         alertRef.current.show(
             mode === "conversation"
-                ? "Conversation mode enabled (switching model will reset history)"
-                : "One-liner mode enabled"
+                ? "One-liner mode enabled"
+                : "Conversation mode enabled (switching model will reset history)"
         );
     }
 
@@ -86,11 +86,11 @@ export default function HeroSection({ alertRef }) {
 
     return (
         <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto mt-5 shadow-lg flex flex-col items-center z-20 relative">
-            <div className="flex items-center  w-full mb-4">  
+            <div className="flex items-center  w-full mb-4">
                 <ConversationToggle
                     mode={mode}
                     setMode={handleModeChange}
-                    // setAlertMsg={setAlertMsg}
+                // setAlertMsg={setAlertMsg}
                 />
                 <ModelSelector
                     models={models}

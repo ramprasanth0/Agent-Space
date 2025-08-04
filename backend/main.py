@@ -53,25 +53,31 @@ class MultiAgentRequest(BaseModel):
     agents: List[str]
 
 
+#function to normalize history
+def normailize_history(history):
+    normalized_dicts = []
+    for msg in history:
+        if isinstance(msg, dict):
+            normalized_dicts.append(msg)
+        elif hasattr(msg, "dict"):
+            normalized_dicts.append(msg.dict())
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid message in history: {msg!r}")
+    return normalized_dicts
+
+
 #Integration of Perplexity LLM
 @app.post("/chat/perplexity",response_model=ChatResponse)
 async def chat_perplexity(request: ChatRequest):
 
     #conversation state enabled perplexity agent
-    history_dicts = []
-    for msg in request.history:
-        if isinstance(msg, dict):
-            history_dicts.append(msg)
-        elif hasattr(msg, "dict"):
-            history_dicts.append(msg.dict())
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid message in history: {msg!r}")
+    history_normalized=normailize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
-        history_payload = history_dicts + [{"role": "user", "content": request.message}]
+        history_payload = history_normalized + [{"role": "user", "content": request.message}]
     try:
-        result = await perplexity_agent.get_response(message=request.message,history=history_dicts + [{"role": "user", "content": request.message}])
+        result = await perplexity_agent.get_response(message=request.message,history=history_payload)
         return ChatResponse(provider= "perplexity",response= result)
     except Exception as e:
         print("Perplexity Agent error:", e)
@@ -84,18 +90,12 @@ async def chat_perplexity(request: ChatRequest):
 #Integration of Gemini LLM
 @app.post("/chat/gemini",response_model=ChatResponse)
 async def chat_gemini(request: ChatRequest):
-    history_dicts = []
-    for msg in request.history:
-        if isinstance(msg, dict):
-            history_dicts.append(msg)
-        elif hasattr(msg, "dict"):
-            history_dicts.append(msg.dict())
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid message in history: {msg!r}")
+
+    history_normalized=normailize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
-        history_payload = history_dicts + [{"role": "user", "content": request.message}]
+        history_payload = history_normalized + [{"role": "user", "content": request.message}]
     try:
         reply = await run_in_threadpool(gemini_agent.get_response, request.message, history_payload)
         return ChatResponse(provider="gemini", response= reply)
@@ -108,18 +108,39 @@ async def chat_gemini(request: ChatRequest):
         )
 
 
+
+
+####---------------------------- Open router models -----------------------------###
 #Integration of deepseek LLM (Open Router)
 @app.post("/chat/deepseek",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
-    reply = await openRouterAgent.get_response(message=request.message, model="R1")
-    return ChatResponse(provider="deepseek",response=reply)
+    try:
+        reply = await openRouterAgent.get_response(message=request.message, model="R1")
+        return ChatResponse(provider="deepseek",response=reply)
+    except Exception as e:
+        print("Deepseek Agent Error",e)
+        return JSONResponse(
+            status_code=500,
+            content={"provider": "DeepSeek", "response": "Internal error. Please try again later."}
+        )
 
 
 #Integration of qwen LLM (Open Router)
 @app.post("/chat/qwen",response_model=ChatResponse)
-async def chat_deepseek(request: ChatRequest):
-    reply = await openRouterAgent.get_response(message=request.message, model="Qwen")
-    return ChatResponse(provider="qwen",response=reply)
+async def chat_qwen(request: ChatRequest):
+    try:
+        reply = await openRouterAgent.get_response(message=request.message, model="Qwen")
+        return ChatResponse(provider="qwen",response=reply)
+    except Exception as e:
+        print("Qwen Agent Error",e)
+        return JSONResponse(
+            status_code=500,
+            content={"provider": "Qwen", "response": "Internal error. Please try again later."}
+        )  
+
+
+
+## Multi-agent request API
 
 @app.post("/chat/multi_agent",response_model=List[ChatResponse])
 async def chat_unified(request: MultiAgentRequest):

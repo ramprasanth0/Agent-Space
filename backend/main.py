@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
-from typing import List
+from typing import List,Literal
 
 from agents.perplexity import PerplexityAgent
 from agents.gemini import GeminiAgent
@@ -25,14 +25,23 @@ app.add_middleware(
 async def home():
     return {"message": "Hello, World!"}
 
+
+#history storage for each session
+history=[]
 #agents initialization
 perplexity_agent = PerplexityAgent()
 gemini_agent=GeminiAgent()
 openRouterAgent=OpenRouterAgent()
 
+class Message(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
 #Single Agent API Request and Response model
 class ChatRequest(BaseModel):
     message : str
+    history: List[Message] = []
+    mode: str = "one-liner"  # or "conversation"
 
 class ChatResponse(BaseModel):
     provider: str
@@ -47,15 +56,23 @@ class MultiAgentRequest(BaseModel):
 #Integration of Perplexity LLM
 @app.post("/chat/perplexity",response_model=ChatResponse)
 async def chat_perplexity(request: ChatRequest):
+
+    #conversation state enabled perplexity agent
+    history_dicts = []
+    for msg in request.history:
+        if isinstance(msg, dict):
+            history_dicts.append(msg)
+        elif hasattr(msg, "dict"):
+            history_dicts.append(msg.dict())
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid message in history: {msg!r}")
+    if request.mode == "one-liner":
+        history_payload = [{"role": "user", "content": request.message}]
+    else:
+        history_payload = history_dicts + [{"role": "user", "content": request.message}]
     try:
-        result = await perplexity_agent.get_response(message=request.message)
+        result = await perplexity_agent.get_response(message=request.message,history=history_dicts + [{"role": "user", "content": request.message}])
         return ChatResponse(provider= "perplexity",response= result)
-
-        #testing
-        # result = ChatResponse(provider= "perplexity",response= result)
-        # print(result)
-        # return result
-
     except Exception as e:
         print("PerplexityAgent error:", e)
         # Always return JSON error
@@ -67,8 +84,6 @@ async def chat_perplexity(request: ChatRequest):
 #Integration of Gemini LLM
 @app.post("/chat/gemini",response_model=ChatResponse)
 async def chat_gemini(request: ChatRequest):
-    # result = gemini_agent.get_response(request.message)
-    # return ChatResponse(provider= "gemini", response= result)
     reply = await run_in_threadpool(gemini_agent.get_response, request.message)
     return ChatResponse(provider="gemini", response= reply)
 
@@ -76,7 +91,6 @@ async def chat_gemini(request: ChatRequest):
 #Integration of deepseek LLM (Open Router)
 @app.post("/chat/deepseek",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
-
     reply = await openRouterAgent.get_response(message=request.message, model="R1")
     return ChatResponse(provider="deepseek",response=reply)
 
@@ -84,7 +98,6 @@ async def chat_deepseek(request: ChatRequest):
 #Integration of qwen LLM (Open Router)
 @app.post("/chat/qwen",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
-
     reply = await openRouterAgent.get_response(message=request.message, model="Qwen")
     return ChatResponse(provider="qwen",response=reply)
 

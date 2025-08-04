@@ -5,6 +5,21 @@ class BaseAgentModel:
     Base class for agent models.
     
     """
+    @property
+    @abstractmethod
+    def info(self)->str:
+        """
+        To get the agents(LLM's) name and other info
+        """
+        pass
+        
+    @abstractmethod
+    def format_history(self):
+        """
+        function to format history for respective LLM
+        """
+        pass
+
     @abstractmethod
     async def get_response(self,*args,**kwargs)->str:
 
@@ -13,10 +28,4 @@ class BaseAgentModel:
         """
         pass
 
-    @property
-    @abstractmethod
-    def info(self)->str:
-        """
-        To get the agents(LLM's) name and other info
-        """
-        pass
+

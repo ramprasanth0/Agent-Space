@@ -9,18 +9,23 @@ load_dotenv()
 
 class PerplexityAgent(BaseAgentModel):
 
-    # def __init__(self):
-    #     """
-    #     initializing agent specific variables
-    #     """
-    #     self.api_key = os.environ.get("PERPLEXITY_API_KEY")
-    #     self.endpoint = "https://api.perplexity.ai/chat/completions"
+    #function to format history for respective LLM
+    def format_history(self,history):
+        formatted = []
+        for msg in history:
+            if hasattr(msg, "dict"):
+                formatted.append(msg.dict())
+            elif isinstance(msg, dict):
+                formatted.append(msg)
+            else:
+                # Defensive: convert Message-like objects (if accidentally received as a string, raise)
+                raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
+        return formatted
 
-    # @property
-    # def info(self):
-    #     return "perplexity"
 
-    async def get_response(self, message:str):
+    async def get_response(self, message:str = None, history = None):
+        # print(history)
+        chat_history = self.format_history(history or [{"role": "user", "content": message}])
         api_key = os.environ.get("PERPLEXITY_API_KEY")
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
@@ -30,13 +35,16 @@ class PerplexityAgent(BaseAgentModel):
             "Content-Type": "application/json"
         }
 
+        # Always convert any Pydantic objects to dicts before sending to the API
+        # chat_history = self.format_history(history or [{"role": "user", "content": message}])
+
         payload = {
-            "model": "sonar",  # Change from "sonar-pro" to "sonar"
-            "messages": [
-                {"role": "system", "content": "provide answers in less than 15 words."},
-                {"role": "user","content":message},
-            ],
-            # 'search_filter': 'very short answers'
+            "model": "sonar",  # available "sonar-pro" & "sonar"
+            # "messages": [
+            #     {"role": "system", "content": "provide answers in less than 15 words."},
+            #     {"role": "user","content":message},
+            # ],
+            "messages":chat_history,
         }
         try:
             # print(api_key)
@@ -45,8 +53,6 @@ class PerplexityAgent(BaseAgentModel):
                 try:
                     response.raise_for_status()
                 except Exception:
-                    # print("Perplexity API error:", response.status_code, await response.text())
-                    # raise
                     try:
                         error_body = await response.json()
                     except Exception:
@@ -66,7 +72,7 @@ class PerplexityAgent(BaseAgentModel):
 
 
 
-
+        #sample template
         # response = self.client_instance.chat.completions.create(
         #     model="sonar-pro",
         #     messages=[

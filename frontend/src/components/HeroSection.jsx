@@ -43,7 +43,7 @@ export default function HeroSection() {
         setLoadingModels(selectedModels);
         // Show empty skeleton cards immediately
         setResponse(selectedModels.map(m => ({ provider: m, response: null })));
-
+        setInput(""); // <-- Only clear in conversation mode after send!
 
         // "Fan out" async, each updates itself…
         selectedModels.forEach(async (model) => {

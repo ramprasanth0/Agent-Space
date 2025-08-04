@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from google.generativeai import types
 from .base import BaseAgentModel
-# import 
 
 
 #loading environment variable
@@ -11,20 +10,39 @@ load_dotenv()
 class GeminiAgent():
     def __init__(self):
         # Explicitly set up API key from env (loads from env variable automatically)
-        # self.model_name = "gemini-2.5-flash"  # or any other valid model
         self.model = genai.GenerativeModel("gemini-2.5-flash")
 
+    #function to format history for respective LLM
+    def format_history(self,history):
+        role_map = {"assistant": "model", "user": "user"}
+        formatted = []
+        for msg in history:
+            if hasattr(msg, "dict"):
+                d = msg.dict()
+            else:
+                d = msg
+            formatted.append({
+                "role": role_map.get(d["role"], d["role"]),
+                "parts": [{"text": d["content"]}]
+            })
+        return formatted
 
-    def get_response(self, message: str) -> str:
-        prompt = prompt = "Answer every prompt as concisely as possible, ideally 1-2 sentences.\n" + message
+
+    def get_response(self, message:str = None, history = None) -> str:
+
+        # Compose the chat to Gemini - all previous plus new user message at end
         try:
-            response = self.model.generate_content(contents=prompt)
+            chat_history = self.format_history((history or []) + [{"role": "user", "content": message}])
+            response = self.model.generate_content(contents=chat_history)
+            print(response.text)
             return response.text
         except Exception as e:
             print("GeminiAgent error:", repr(e))
             raise
 
 
+
+    #sample template
     # def get_response(self, message: str) -> str:
     # # SDK loads the key from GOOGLE_API_KEY
     #     client = genai.Client()

@@ -74,7 +74,7 @@ async def chat_perplexity(request: ChatRequest):
         result = await perplexity_agent.get_response(message=request.message,history=history_dicts + [{"role": "user", "content": request.message}])
         return ChatResponse(provider= "perplexity",response= result)
     except Exception as e:
-        print("PerplexityAgent error:", e)
+        print("Perplexity Agent error:", e)
         # Always return JSON error
         return JSONResponse(
             status_code=500,
@@ -84,8 +84,28 @@ async def chat_perplexity(request: ChatRequest):
 #Integration of Gemini LLM
 @app.post("/chat/gemini",response_model=ChatResponse)
 async def chat_gemini(request: ChatRequest):
-    reply = await run_in_threadpool(gemini_agent.get_response, request.message)
-    return ChatResponse(provider="gemini", response= reply)
+    history_dicts = []
+    for msg in request.history:
+        if isinstance(msg, dict):
+            history_dicts.append(msg)
+        elif hasattr(msg, "dict"):
+            history_dicts.append(msg.dict())
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid message in history: {msg!r}")
+    if request.mode == "one-liner":
+        history_payload = [{"role": "user", "content": request.message}]
+    else:
+        history_payload = history_dicts + [{"role": "user", "content": request.message}]
+    try:
+        reply = await run_in_threadpool(gemini_agent.get_response, request.message, history_payload)
+        return ChatResponse(provider="gemini", response= reply)
+    except Exception as e:
+        print("Gemini Agent error:", e)
+        # Always return JSON error
+        return JSONResponse(
+            status_code=500,
+            content={"provider": "gemini", "response": "Internal error. Please try again later."}
+        )
 
 
 #Integration of deepseek LLM (Open Router)

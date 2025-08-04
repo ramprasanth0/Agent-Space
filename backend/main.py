@@ -114,6 +114,11 @@ async def chat_gemini(request: ChatRequest):
 #Integration of deepseek LLM (Open Router)
 @app.post("/chat/deepseek",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
+    history_normalized=normailize_history(request.history)
+    if request.mode == "one-liner":
+        history_payload = [{"role": "user", "content": request.message}]
+    else:
+        history_payload = history_normalized + [{"role": "user", "content": request.message}]
     try:
         reply = await openRouterAgent.get_response(message=request.message, model="R1")
         return ChatResponse(provider="deepseek",response=reply)
@@ -128,6 +133,11 @@ async def chat_deepseek(request: ChatRequest):
 #Integration of qwen LLM (Open Router)
 @app.post("/chat/qwen",response_model=ChatResponse)
 async def chat_qwen(request: ChatRequest):
+    history_normalized=normailize_history(request.history)
+    if request.mode == "one-liner":
+        history_payload = [{"role": "user", "content": request.message}]
+    else:
+        history_payload = history_normalized + [{"role": "user", "content": request.message}]
     try:
         reply = await openRouterAgent.get_response(message=request.message, model="Qwen")
         return ChatResponse(provider="qwen",response=reply)

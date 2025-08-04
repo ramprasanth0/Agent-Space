@@ -25,8 +25,8 @@ class PerplexityAgent(BaseAgentModel):
 
     async def get_response(self, message:str = None, history = None):
         # print(history)
-        chat_history = self.format_history(history or [{"role": "user", "content": message}])
         api_key = os.environ.get("PERPLEXITY_API_KEY")
+        chat_history = self.format_history(history or [{"role": "user", "content": message}])
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
         endpoint = "https://api.perplexity.ai/chat/completions"

@@ -16,10 +16,24 @@ class OpenRouterAgent(BaseAgentModel):
         "Qwen": "qwen/qwen3-coder:free"
     }
 
+    #function to format history for respective LLM
+    def format_history(self,history):
+        formatted = []
+        for msg in history:
+            if hasattr(msg, "dict"):
+                formatted.append(msg.dict())
+            elif isinstance(msg, dict):
+                formatted.append(msg)
+            else:
+                # Defensive: convert Message-like objects (if accidentally received as a string, raise)
+                raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
+        return formatted
 
-    async def get_response(self,message,model):
+
+    async def get_response(self,model, message = None, history = None):
         model_name = self.MODEL_NAME_MAP.get(model)  # default/fallback
         api_key = os.environ.get("OPENROUTER_API_KEY")
+        chat_history = self.format_history(history or [{"role": "user", "content": message}])
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
         endpoint = "https://openrouter.ai/api/v1/chat/completions"
@@ -30,10 +44,7 @@ class OpenRouterAgent(BaseAgentModel):
 
         payload = {
             "model": model_name,  
-            "messages": [
-                {"role": "system", "content": "provide answers in less than 15 words."},
-                {"role": "user","content":message},
-            ],
+            "messages": chat_history,
             # 'search_filter': 'very short answers'
         }
         try:

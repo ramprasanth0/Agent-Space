@@ -12,8 +12,8 @@ const Alert = forwardRef(function Alert(_, ref) {
       setVisible(true);
       clearTimeout(fadeTimeout.current);
       clearTimeout(unmountTimeout.current);
-      fadeTimeout.current = setTimeout(() => setVisible(false), 3000); // Hold 2s
-      unmountTimeout.current = setTimeout(() => setMessage(""), 3500); // Fade .5s
+      fadeTimeout.current = setTimeout(() => setVisible(false), 4000); // Hold 4s
+      unmountTimeout.current = setTimeout(() => setMessage(""), 4500); // Fade .5s
     },
   }), []);
 

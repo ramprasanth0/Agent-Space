@@ -40,13 +40,34 @@ export default function HeroSection({ alertRef }) {
                 : "Conversation mode enabled (switching model will reset history)"
         );
     }
+    let toShow = null;
+    if (mode === "conversation" && selectedModels.length === 1 && messages.length > 0) {
+        const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
+        if (lastAssistant) {
+            toShow = [{ provider: selectedModels[0], response: lastAssistant.content }];
+        }
+    }
+    // console.log("toShow",toShow)
+
+    // function sanitizeHistory(historyArr) {
+    //     return historyArr.map(msg => ({
+    //         role: typeof msg.role === "string" ? msg.role : String(msg.role),
+    //         content: typeof msg.content === "string" ? msg.content : String(msg.content ?? "")
+    //     }));
+    // }
 
     const handleClick = async (e) => {
         e.preventDefault();
+        if (!input.trim()) return; // Prevent empty sends
 
         // Make a copy of current history plus this turn
-        const updatedMessages = [...messages, { role: "user", content: input }];
-        setMessages(updatedMessages);
+        // const updatedMessages = [...messages, { role: "user", content: input }];
+        // setMessages(updatedMessages);
+
+        // Add the current input as a user message:
+        const userMessageObj = { role: "user", content: input };
+        // This is the TRUE chat history to send for this turn:
+        const historyToSend = [...messages,userMessageObj];
 
         // Start loading all selected models
         setLoadingModels(selectedModels);
@@ -54,19 +75,23 @@ export default function HeroSection({ alertRef }) {
         setResponse(selectedModels.map(m => ({ provider: m, response: null })));
         setInput(""); // <-- Only clear in conversation mode after send!
 
+        // We'll keep all LLM replies here by provider name (for multi llm replies)
+        const replies = {};
+
         // "Fan out" async, each updates itself…
-        selectedModels.forEach(async (model) => {
+        await Promise.all(selectedModels.map(async (model) => {
             let data = null;
             try {
                 switch (model) {
                     case "Sonar":
-                        data = await sendChatToPerplexity(input, messages, mode); break;
+                        console.log('Sending history to backend:', historyToSend);
+                        data = await sendChatToPerplexity(input, historyToSend, mode); break;
                     case "Gemini":
-                        data = await sendChatToGemini(input, messages, mode); break;
+                        data = await sendChatToGemini(input, historyToSend, mode); break;
                     case "R1":
-                        data = await sendChatToDeepSeek(input, messages, mode); break;
+                        data = await sendChatToDeepSeek(input, historyToSend, mode); break;
                     case "Qwen":
-                        data = await sendChatToQwen(input, messages, mode); break;
+                        data = await sendChatToQwen(input, historyToSend, mode); break;
                     default:
                         data = { response: "Model not implemented yet." };
                 }
@@ -74,6 +99,7 @@ export default function HeroSection({ alertRef }) {
                 data = { response: "Error: Unable to contact backend." };
             }
             // Update just this card's response
+            replies[model] = data.response != null ? String(data.response) : "No response.";
             setResponse(prev =>
                 prev.map(r =>
                     r.provider === model ? { ...r, response: data.response } : r
@@ -81,8 +107,21 @@ export default function HeroSection({ alertRef }) {
             );
             // Remove the model from loading
             setLoadingModels(prev => prev.filter(m => m !== model));
-        });
-    };
+        }));
+        
+        // Store user + assistant messages in state (for full chat context)
+        // Only in conversation mode—with one model
+        if (mode === "conversation" && selectedModels.length === 1) {
+            const model = selectedModels[0];
+            setMessages([
+                ...historyToSend,
+                { role: "assistant", content: replies[model]}
+            ]);
+        } else if (mode === "one-liner") {
+            setMessages([]); // Or keep last turn if desired for one-liner display
+        }
+    }
+
 
     return (
         <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto mt-5 shadow-lg flex flex-col items-center z-20 relative">
@@ -110,7 +149,10 @@ export default function HeroSection({ alertRef }) {
             </div>
             <div className="w-full" style={{ flex: 1, minHeight: 0 }}>
                 <div className="max-h-[18rem] overflow-auto w-full no-scrollbar">
-                    <ResponseCard response={response} loadingModels={loadingModels} />
+                    <ResponseCard 
+                        response={toShow || response}
+                        loadingModels={loadingModels}
+                    />
                 </div>
             </div>
         </div>

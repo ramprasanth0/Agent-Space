@@ -75,7 +75,7 @@ async def chat_perplexity(request: ChatRequest):
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
-        history_payload = history_normalized + [{"role": "user", "content": request.message}]
+        history_payload = history_normalized
     try:
         result = await perplexity_agent.get_response(message=request.message,history=history_payload)
         return ChatResponse(provider= "perplexity",response= result)
@@ -95,7 +95,7 @@ async def chat_gemini(request: ChatRequest):
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
-        history_payload = history_normalized + [{"role": "user", "content": request.message}]
+        history_payload = history_normalized
     try:
         reply = await run_in_threadpool(gemini_agent.get_response, request.message, history_payload)
         return ChatResponse(provider="gemini", response= reply)
@@ -116,7 +116,7 @@ async def chat_deepseek(request: ChatRequest):
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
-        history_payload = history_normalized + [{"role": "user", "content": request.message}]
+        history_payload = history_normalized
     try:
         reply = await openRouterAgent.get_response(message=request.message, model="R1", history=history_payload)
         return ChatResponse(provider="deepseek",response=reply)
@@ -135,7 +135,7 @@ async def chat_qwen(request: ChatRequest):
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
-        history_payload = history_normalized + [{"role": "user", "content": request.message}]
+        history_payload = history_normalized
     try:
         reply = await openRouterAgent.get_response(message=request.message, model="Qwen", history=history_payload)
         return ChatResponse(provider="qwen",response=reply)

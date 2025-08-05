@@ -32,7 +32,7 @@ class GeminiAgent():
 
         # Compose the chat to Gemini - all previous plus new user message at end
         try:
-            chat_history = self.format_history((history or []) + [{"role": "user", "content": message}])
+            chat_history = self.format_history((history or []))
             response = self.model.generate_content(contents=chat_history)
             print(response.text)
             return response.text

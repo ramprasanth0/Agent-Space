@@ -49,6 +49,7 @@ class PerplexityAgent(BaseAgentModel):
         try:
             # print(api_key)
             async with httpx.AsyncClient(timeout=30) as client:           # async context manager to handle the api request
+                print(f"payload,{payload}")
                 response = await client.post(endpoint, headers=headers, json=payload)
                 try:
                     response.raise_for_status()

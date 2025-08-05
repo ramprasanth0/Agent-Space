@@ -2,14 +2,18 @@ import { useRef } from "react"
 import HeroSection from "../components/HeroSection"
 import MoodToggle from "../components/MoodToggle"
 import Alert from "../components/Alert"
+import InfoCard from "../components/InfoCard"
 
 export default function Home() {
   const alertRef = useRef();
   return (
     <div>
-      <header className="text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20">
-        <div className="absolute top-6 right-20">
+      <header className="relative text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20">
+        <div className="absolute top-6 right-10">
             <MoodToggle />
+        </div>
+        <div className="absolute top-9 left-10">
+            <InfoCard />
         </div>
         <h1 className="text-tekhelet-900 font-minecraft text-5xl md:text-4xl lg:text-5xl font-extrabold">
           Agent Space

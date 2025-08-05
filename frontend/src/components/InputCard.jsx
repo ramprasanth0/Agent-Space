@@ -9,7 +9,7 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     disabled={loading}
-                    placeholder="Is gravity fake?"
+                    placeholder="Is gravity real?"
                 />
             </label>
             <button

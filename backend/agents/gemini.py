@@ -12,7 +12,7 @@ class GeminiAgent():
         # Explicitly set up API key from env (loads from env variable automatically)
         self.model = genai.GenerativeModel("gemini-2.5-flash")
 
-    #function to format history for respective LLM
+    #function to format history for gemini LLM
     def format_history(self,history):
         role_map = {"assistant": "model", "user": "user"}
         formatted = []

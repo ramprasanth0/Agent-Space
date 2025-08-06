@@ -17,23 +17,23 @@ class OpenRouterAgent(BaseAgentModel):
     }
 
     #function to format history for respective LLM
-    def format_history(self,history):
-        formatted = []
-        for msg in history:
-            if hasattr(msg, "dict"):
-                formatted.append(msg.dict())
-            elif isinstance(msg, dict):
-                formatted.append(msg)
-            else:
-                # Defensive: convert Message-like objects (if accidentally received as a string, raise)
-                raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
-        return formatted
+    # def format_history(self,history):
+    #     formatted = []
+    #     for msg in history:
+    #         if hasattr(msg, "dict"):
+    #             formatted.append(msg.dict())
+    #         elif isinstance(msg, dict):
+    #             formatted.append(msg)
+    #         else:
+    #             # Defensive: convert Message-like objects (if accidentally received as a string, raise)
+    #             raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
+    #     return formatted
 
 
     async def get_response(self,model, message = None, history = None):
         model_name = self.MODEL_NAME_MAP.get(model)  # default/fallback
         api_key = os.environ.get("OPENROUTER_API_KEY")
-        chat_history = self.format_history(history or [{"role": "user", "content": message}])
+        chat_history = history or [{"role": "user", "content": message}]
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
         endpoint = "https://openrouter.ai/api/v1/chat/completions"

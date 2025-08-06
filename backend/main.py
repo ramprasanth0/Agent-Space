@@ -5,11 +5,10 @@ from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from typing import List,Literal
 
-from agents.perplexity import PerplexityAgent
-from agents.gemini import GeminiAgent
-from agents.open_router import OpenRouterAgent
-from agents.multi_agent_orchestrator import MultiAgentOrchestrator
-
+from backend.agents.perplexity import PerplexityAgent
+from backend.agents.gemini import GeminiAgent
+from backend.agents.open_router import OpenRouterAgent
+from backend.agents.multi_agent_orchestrator import MultiAgentOrchestrator
 
 app = FastAPI()
 
@@ -59,7 +58,7 @@ def normailize_history(history):
     for msg in history:
         if isinstance(msg, dict):
             normalized_dicts.append(msg)
-        elif hasattr(msg, "dict"):
+        elif hasattr(msg, "dict") and callable(getattr(msg, "dict")):
             normalized_dicts.append(msg.dict())
         else:
             raise HTTPException(status_code=400, detail=f"Invalid message in history: {msg!r}")
@@ -71,6 +70,7 @@ def normailize_history(history):
 async def chat_perplexity(request: ChatRequest):
 
     #conversation state enabled perplexity agent
+    # print(f"request,{request}")
     history_normalized=normailize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]

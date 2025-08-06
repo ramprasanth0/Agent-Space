@@ -10,23 +10,23 @@ load_dotenv()
 class PerplexityAgent(BaseAgentModel):
 
     #function to format history for respective LLM
-    def format_history(self,history):
-        formatted = []
-        for msg in history:
-            if hasattr(msg, "dict"):
-                formatted.append(msg.dict())
-            elif isinstance(msg, dict):
-                formatted.append(msg)
-            else:
-                # Defensive: convert Message-like objects (if accidentally received as a string, raise)
-                raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
-        return formatted
+    # def format_history(self,history):
+    #     formatted = []
+    #     for msg in history:
+    #         if hasattr(msg, "dict"):
+    #             formatted.append(msg.dict())
+    #         elif isinstance(msg, dict):
+    #             formatted.append(msg)
+    #         else:
+    #             # Defensive: convert Message-like objects (if accidentally received as a string, raise)
+    #             raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
+    #     return formatted
 
 
     async def get_response(self, message:str = None, history = None):
         # print(history)
         api_key = os.environ.get("PERPLEXITY_API_KEY")
-        chat_history = self.format_history(history or [{"role": "user", "content": message}])
+        chat_history = history or [{"role": "user", "content": message}]
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
         endpoint = "https://api.perplexity.ai/chat/completions"
@@ -49,7 +49,7 @@ class PerplexityAgent(BaseAgentModel):
         try:
             # print(api_key)
             async with httpx.AsyncClient(timeout=30) as client:           # async context manager to handle the api request
-                print(f"payload,{payload}")
+                # print(f"payload,{payload}")
                 response = await client.post(endpoint, headers=headers, json=payload)
                 try:
                     response.raise_for_status()

@@ -76,7 +76,7 @@ export default function InfoCard() {
             <ul className="space-y-3 text-left text-sm">
                 <li>
                     <div className="font-bold text-violet-700 dark:text-violet-300">
-                        Perplexity <span className="font-normal text-xs text-slate-500">(Sonar)</span>
+                        Perplexity <span className="font-bold text-s text-slate-500">(Sonar)</span>
                     </div>
                     <div className="pl-1 text-slate-800 dark:text-slate-200 text-xs">
                         Provides quick, grounded answers by connecting to the internet in real-time, ensuring the latest information from trusted sources.
@@ -84,7 +84,7 @@ export default function InfoCard() {
                 </li>
                 <li>
                     <div className="font-bold text-cyan-700 dark:text-cyan-200">
-                        Gemini <span className="font-normal text-xs text-slate-500">(1.5 Flash)</span>
+                        Gemini <span className="font-bold text-s text-slate-500">(1.5 Flash)</span>
                     </div>
                     <div className="pl-1 text-slate-800 dark:text-slate-200 text-xs">
                         Optimized for chat assistants and on-demand content generation where speed and scale are essential.
@@ -92,7 +92,7 @@ export default function InfoCard() {
                 </li>
                 <li>
                     <div className="font-bold text-yellow-600 dark:text-yellow-200">
-                        DeepSeek <span className="font-normal text-xs text-slate-500">(R1)</span>
+                        DeepSeek <span className="font-bold text-s text-slate-500">(R1)</span>
                     </div>
                     <div className="pl-1 text-slate-800 dark:text-slate-200 text-xs">
                         Outstanding on benchmarks in mathematics, programming, and logic; ideal for technical reasoning.
@@ -100,7 +100,7 @@ export default function InfoCard() {
                 </li>
                 <li>
                     <div className="font-bold text-emerald-700 dark:text-emerald-200">
-                        Qwen <span className="font-normal text-xs text-slate-500">(Qwen3 Coder)</span>
+                        Qwen <span className="font-bold text-s text-slate-500">(Qwen3 Coder)</span>
                     </div>
                     <div className="pl-1 text-slate-800 dark:text-slate-200 text-xs">
                         A Mixture-of-Experts (MoE) model specialized for agentic coding tasks, including function calling, tool use, and long-context reasoning over codebases.

@@ -10,6 +10,11 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
                     onChange={e => setInput(e.target.value)}
                     disabled={loading}
                     placeholder="Is gravity real?"
+                    onKeyDown={e => {
+                        if (e.key === 'Enter' && !loading && input.trim()) {
+                        handleClick(e);
+                        }
+                    }}
                 />
             </label>
             <button

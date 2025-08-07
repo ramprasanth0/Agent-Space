@@ -1,21 +1,6 @@
+import React from "react";
 export default function ResponseCard({ response, loadingModels  }) {
   if (!Array.isArray(response) || response.length === 0) return null;
-
-  // if (response.length === 1) {
-  //   // Single agent: center, not grid, can stretch wider if desired
-  //   const res = response[0];
-  //   return (
-  //     <div className="">
-  //       <div
-  //         className="bg-tekhelet-700 text-night m-6 rounded-3xl p-6"
-  //       >
-  //         <div className="font-bold mb-2">{res.provider}</div>
-  //         <div className="overflow-y-hidden">{res.response}</div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   const gridColsClass =
     response.length === 1 ? "grid-cols-1"
     : response.length === 2 ? "grid-cols-2"
@@ -24,7 +9,11 @@ export default function ResponseCard({ response, loadingModels  }) {
     : "grid-cols-1";
 
   return (
-    <div className={`grid ${gridColsClass} gap-4 p-6`}>
+    <div
+      role="grid"
+      data-testid="response-card-grid"
+      className={`grid ${gridColsClass} gap-4 p-6`}
+    >
       {response.map((res, idx) => (
         <div
           key={res.provider || idx}

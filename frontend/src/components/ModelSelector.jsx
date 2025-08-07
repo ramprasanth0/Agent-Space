@@ -1,4 +1,6 @@
 // A reusable toggle selector for LLM/model choice
+import React from "react";
+
 import deepSeek from '../assets/deepSeek.svg'
 import gemini from '../assets/gemini.svg'
 import perplexity from '../assets/perplexity.svg'

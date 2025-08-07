@@ -1,3 +1,4 @@
+import React from 'react';
 import oneLinerIcon from '../assets/bolt-icon.svg'
 import conversationIcon from '../assets/conversation-icon-cropped.svg'
 

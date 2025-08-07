@@ -1,16 +1,18 @@
+import React from "react";
 export default function MoodToggle() {
   // DaisyUI listens to data-theme, but prefers using their dropdown/switch logic and a button:
-  function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-  }
+  // function setTheme(theme) {
+  //   document.documentElement.setAttribute('data-theme', theme);
+  // }
   return (
     <>
-      <label className="swap swap-rotate tooltip">
+      <label className="swap swap-rotate tooltip" aria-label="toggle theme" >
         {/* this hidden checkbox controls the state */}
         <input type="checkbox" className="theme-controller" value="dark" />
 
         {/* sun icon */}
         <svg
+          data-testid="sun-icon"
           className="swap-off h-10 w-10 fill-current"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24">
@@ -20,6 +22,7 @@ export default function MoodToggle() {
 
         {/* moon icon */}
         <svg
+          data-testid="moon-icon"
           className="swap-on h-10 w-10 fill-current"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24">

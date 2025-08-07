@@ -1,37 +1,66 @@
+import React from "react";
+
 export default function InputCard({ input, loading, setInput, handleClick }) {
-    return (
-        <div className="p-6 w-full">
-            <label className="text-purpureus-900 flex items-center font-medium gap-2 mb-4">
-                <div className="shrink-0">
-                    Your Unhinged Queries:
-                </div>
-                <input className="bg-black text-white px-3 block py-2 border border-none rounded-2xl bg-center focus:outline-none focus:ring-4 focus:ring-purple-800 transition"
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    disabled={loading}
-                    placeholder="Is gravity real?"
-                    onKeyDown={e => {
-                        if (e.key === 'Enter' && !loading && input.trim()) {
-                        handleClick(e);
-                        }
-                    }}
-                />
-            </label>
-            <button
-                className="mt-4 w-full bg-tekhelet-900 text-black rounded-full py-2 hover:bg-tekhelet-600 hover:text-white transition"
-                onClick={handleClick}
-                disabled={loading || !input.trim()}
+  return (
+    <div className="p-6 w-full">
+      <label
+        htmlFor="inputcard-input"
+        className="text-purpureus-900 flex items-center font-medium gap-2 mb-4"
+      >
+        <div className="shrink-0">Your Unhinged Queries:</div>
+        <input
+          id="inputcard-input"
+          className="bg-black text-white px-3 block py-2 rounded-2xl bg-center focus:outline-none focus:ring-4 focus:ring-purple-800 transition"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={loading}
+          data-testid="inputcard-input"
+          placeholder="Is gravity real?"
+          aria-label="User input"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !loading && input.trim()) {
+              e.preventDefault();
+              handleClick(e);
+            }
+          }}
+        />
+      </label>
+      <button
+        className="mt-4 w-full bg-tekhelet-900 text-black rounded-full py-2 hover:bg-tekhelet-600 hover:text-white transition"
+        onClick={handleClick}
+        disabled={loading || !input.trim()}
+        data-testid="inputcard-submit"
+        aria-label="Submit query"
+        type="button"
+      >
+        {loading ? (
+          <span className="flex items-center justify-center">
+            <svg
+              className="animate-spin h-5 w-5 mr-2 text-white"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
             >
-                {loading ? (
-                    <span className="flex items-center justify-center">
-                        <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                        </svg>
-                        Loading...
-                    </span>
-                ) : "Go!"}
-            </button>
-        </div>
-    );
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+            Loading...
+          </span>
+        ) : (
+          "Go!"
+        )}
+      </button>
+    </div>
+  );
 }

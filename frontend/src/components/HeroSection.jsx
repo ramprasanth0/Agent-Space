@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useRef } from "react"
 import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, sendChatToMultiAgent } from "../api/Agents"
 import InputCard from './InputCard'

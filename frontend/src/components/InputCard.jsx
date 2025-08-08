@@ -1,6 +1,18 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 export default function InputCard({ input, loading, setInput, handleClick }) {
+  const textareaRef = useRef();
+
+  // Autosize on input change
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto"; // Reset height so scrollHeight is correct
+      // Limit (e.g. 120px; adjust as needed)
+      el.style.height = Math.min(el.scrollHeight, 120) + "px";
+    }
+  }, [input]);
+
   return (
     <div className="p-6 w-full">
       <label
@@ -8,9 +20,10 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
         className="text-purpureus-900 flex items-center font-medium gap-2 mb-4"
       >
         <div className="shrink-0">Your Unhinged Queries:</div>
-        <input
+        <textarea
+          ref={textareaRef}
           id="inputcard-input"
-          className="bg-black text-white px-3 block py-2 rounded-2xl bg-center focus:outline-none focus:ring-4 focus:ring-purple-800 transition"
+          className="resize-none w-3/4 bg-black text-white px-3 pr-2 block py-2 rounded-xl bg-center focus:outline-none focus:ring-4 focus:ring-purple-800 transition"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={loading}
@@ -18,11 +31,13 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
           placeholder="Is gravity real?"
           aria-label="User input"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !loading && input.trim()) {
+            if (e.key === "Enter" && !e.shiftKey && !loading && input.trim()) {
               e.preventDefault();
               handleClick(e);
             }
           }}
+          rows={1}
+          style={{ maxHeight: 120, overflow: "auto", minHeight: 40 }} // stops growing at 120px height
         />
       </label>
       <button

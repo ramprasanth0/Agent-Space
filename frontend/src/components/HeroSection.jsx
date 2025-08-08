@@ -12,6 +12,8 @@ export default function HeroSection({ alertRef }) {
 
     // state var for model data from user
     const [input, setInput] = useState('');
+    // state var to remember user last question
+    const [lastUserQuestion, setLastUserQuestion] = useState("");
     // state var for response from api
     const [response, setResponse] = useState([]);
     //state var for loading anim (till response from api)
@@ -74,6 +76,7 @@ export default function HeroSection({ alertRef }) {
         setLoadingModels(selectedModels);
         // Show empty skeleton cards immediately
         setResponse(selectedModels.map(m => ({ provider: m, response: null })));
+        setLastUserQuestion(input); // <--remembering last question
         setInput(""); // <-- Only clear in conversation mode after send!
 
         // We'll keep all LLM replies here by provider name (for multi llm replies)
@@ -125,8 +128,8 @@ export default function HeroSection({ alertRef }) {
 
 
     return (
-        <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto mt-5 shadow-lg flex flex-col items-center z-20 relative">
-            <div className="flex items-center  w-full mb-4">
+        <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto shadow-lg flex flex-col items-center z-20 relative">
+            <div className="flex items-center  w-full">
                 <ConversationToggle
                     mode={mode}
                     setMode={handleModeChange}
@@ -149,8 +152,9 @@ export default function HeroSection({ alertRef }) {
                 />
             </div>
             <div className="w-full" style={{ flex: 1, minHeight: 0 }}>
-                <div className="max-h-[18rem] overflow-auto w-full no-scrollbar">
+                <div className="max-h-[18rem] overflow-auto w-full">
                     <ResponseCard 
+                        userQuestion={lastUserQuestion}
                         response={toShow || response}
                         loadingModels={loadingModels}
                     />

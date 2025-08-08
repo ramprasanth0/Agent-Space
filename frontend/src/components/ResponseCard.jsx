@@ -1,5 +1,5 @@
 import React from "react";
-export default function ResponseCard({ response, loadingModels  }) {
+export default function ResponseCard({ userQuestion, response, loadingModels }) {
   if (!Array.isArray(response) || response.length === 0) return null;
   const gridColsClass =
     response.length === 1 ? "grid-cols-1"
@@ -17,19 +17,20 @@ export default function ResponseCard({ response, loadingModels  }) {
       {response.map((res, idx) => (
         <div
           key={res.provider || idx}
-          className="bg-tekhelet-700 text-night rounded-3xl p-3"
+          className="bg-tekhelet-700 text-night rounded-3xl m-2 p-3"
         >
-          <div className="font-bold text-black mb-2">{res.provider}</div>
+          <div className="m-3 mb-0 font-bold text-black">{res.provider}</div>
+          <div className="bg-tekhelet-500 m-2 mt-0 rounded-xl overflow-x-auto font-bold p-2">{userQuestion}</div>
 
           {loadingModels.includes(res.provider) || res.response === null ? (
-            <div className="space-y-2 w-full">
+            <div className="space-y-2 w-full mt-3">
               <div className="skeleton bg-white h-4 w-3/4"></div>
               <div className="skeleton bg-white h-6 w-full"></div>
               <div className="skeleton bg-white h-6 w-full"></div>
               {/* <div className="skeleton bg-white h-6 w-full"></div> */}
             </div>
           ) : (
-            <div className="m-2 overflow-x-auto">{res.response}</div>
+            <div className="bg-tekhelet-400 m-2 mt-4 rounded-xl overflow-x-auto p-2">{res.response}</div>
           )}
 
           {/* <div className="m-2">{res.response}</div> */}

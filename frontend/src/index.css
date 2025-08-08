@@ -5,61 +5,165 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+@plugin "daisyui/theme" {
+  name: "agentspace-dark";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  /* Core theme palette (main DaisyUI roles) */
+  --color-base-100: #10091c;
+  /* general background */
+  --color-base-200: #211237;
+  --color-base-300: #311b53;
+  --color-base-content: #dbceef;
+  /* default text */
+
+  --color-primary: #1d1660;
+  /* oxford_blue-600 (Hero card bg) */
+  --color-primary-content: #dbceef;
+  /* tekhelet-900 (light text on hero) */
+
+  --color-secondary: #dbceef;
+  /* tekhelet-900 (Model selected bg, also Go button) */
+  --color-secondary-content: #703dbc;
+  /* tekhelet-600 (Go! button hover) */
+
+  --color-accent: #936bcf;
+  /* tekhelet-700 (Response card bg) */
+  --color-accent-content: #dbceef;
+  /* text on response card */
+
+  --color-neutral: #3429af;
+  /* oxford_blue-700 (Model selector tab bg) */
+  --color-neutral-content: #dbceef;
+
+  /* Info, success, warning, error as fallback or other usages */
+  --color-info: #b79cdf;
+  --color-success: #7f76df;
+  --color-warning: #b79cdf;
+  --color-error: #552e67;
+
+  /* Border radius etc. as before */
+  --radius-selector: 1rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "agentspace-light";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+
+  /* Light, ethereal backgrounds for a fresh airy UI */
+  --color-base-100: #eaf3fb;
+  /* sky-mist white, blends with your background image */
+  --color-base-200: #d3e4fa;
+  /* pale blue, for cards/containers */
+  --color-base-300: #c6d7f5;
+  /* very soft periwinkle */
+  --color-base-content: #222237;
+  /* slightly muted twilight navy for text for soft contrast */
+
+  /* Hero/feature card (inspired by upper space/sky in image) */
+  --color-primary: #95b4f3;
+  /* clear cloud blue */
+  --color-primary-content: #24213a;
+  /* navy font for sharp overlay on blue */
+
+  /* Secondary (pastel cosmic violet/pink, inspired by sun-glow in your image) */
+  --color-secondary: #e0c3f7;
+  /* dreamy violet-pink */
+  --color-secondary-content: #31255b;
+  /* dark indigo for labels/icons on secondary */
+
+  --color-secondary-focus: #cfaef4;
+  /* richer, for hover/focus on buttons/tabs */
+
+  /* Accent: Sunrise blush or cosmic pink for strong CTAs */
+  --color-accent: #ffe1ef;
+  /* pastel sunrise blush */
+  --color-accent-content: #262246;
+  /* deep night-violet for text on accent */
+
+  /* Tabs and inputs (gentle gradient inspired by image's horizon) */
+  --color-neutral: #bedbf6;
+  /* horizon blue (for tab backgrounds, etc) */
+  --color-neutral-content: #283048;
+  /* subtle cosmic navy for selected tab/input label */
+
+  /* Informational states: softer for light backgrounds */
+  --color-info: #95dbfc;
+  /* pale sky blue for info alerts */
+  --color-info-content: #21324a;
+
+  --color-success: #97f294;
+  /* very light spring green */
+  --color-success-content: #222b25;
+
+  --color-warning: #ffe8b0;
+  /* bright creamy yellow */
+  --color-warning-content: #594f2e;
+
+  --color-error: #f2a7a7;
+  /* blush red, not too bright for comfort */
+  --color-error-content: #3b2323;
+  /* Border radius and sizing reflecting softness and elegance */
+
+  --radius-selector: 0.75rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+  --border: 1px;
+
+  /* Visual depth and subtle grain/noise */
+
+  --depth: 2;
+  --noise: 10;
+}
 
 @theme {
-  /* Accent Colours - Tekhelet */
-  --color-tekhelet-100: #10091c;
-  --color-tekhelet-200: #211237;
-  --color-tekhelet-300: #311b53;
-  --color-tekhelet-400: #42246f;
-  --color-tekhelet-500: #522d89;
-  --color-tekhelet-600: #703dbc;
-  --color-tekhelet-700: #936bcf;
-  --color-tekhelet-800: #b79cdf;
-  --color-tekhelet-900: #dbceef;
 
-  /* Accent Colours - Purpureus */
-  --color-purpureus-100: #1c0f22;
-  --color-purpureus-200: #391f45;
-  --color-purpureus-300: #552e67;
-  --color-purpureus-400: #723e8a;
-  --color-purpureus-500: #904eae;
-  --color-purpureus-600: #a56fbe;
-  --color-purpureus-700: #bc93cf;
-  --color-purpureus-800: #d2b7df;
-  --color-purpureus-900: #e9dbef;
+  /* ---- UI-USE-CASE custom properties ----  dark theme-----  */
+  --color-dark-content-title: #dbceef;
+  /* Page Title */
+  --color-dark-label: #e9dbef;
+  /* Input label text-purpureus-900 */
+  --color-dark-tab_bg: #3429af;
+  /* Model selector tab bg */
+  --color-dark-tab_unselected: #0e0c36;
+  /* oxford_blue-500 */
+  --color-dark-tab_unselected_hover: #b79cdf;
+  /* tekhelet-800 */
+  --color-dark-tab_selected: #dbceef;
+  /* tekhelet-900 */
+  --color-dark-response_card_bg: #936bcf;
+  /* tekhelet-700 (Response card) */
 
-  /* Secondary - Oxford Blue */
-  --color-oxford_blue-100: #03020b;
-  --color-oxford_blue-200: #060516;
-  --color-oxford_blue-300: #080721;
-  --color-oxford_blue-400: #0b0a2b;
-  --color-oxford_blue-500: #0e0c36;
-  --color-oxford_blue-600: #1d1660;
-  --color-oxford_blue-700: #3429af;
-  --color-oxford_blue-800: #736ddf;
-  --color-oxford_blue-900: #b9b6ef;
 
-  /* Primary - Russian Violet */
-  --color-russian_violet-100: #04030e;
-  --color-russian_violet-200: #08071c;
-  --color-russian_violet-300: #0d0a2a;
-  --color-russian_violet-400: #110d38;
-  --color-russian_violet-500: #161148;
-  --color-russian_violet-600: #29218b;
-  --color-russian_violet-700: #3e31cf;
-  --color-russian_violet-800: #7f76df;
-  --color-russian_violet-900: #bfbaef;
-
+  /* Custom UI-use-case (matches your design system naming, adjust as desired) */
+  --color-light-content-title: #413273;
+  /* cosmic indigo for page titles */
+  --color-light-label: #8143a6;
+  /* pastel magenta for input labels */
+  --color-light-tab_bg: #bedbf6;
+  /* pastel sky blue for tab bg */
+  --color-light-tab_unselected: #eaf3fb;
+  /* very pale for unselected tabs */
+  --color-light-tab_unselected_hover: #b9cdfa;
+  /* hover: subtle blue-violet */
+  --color-light-tab_selected: #dcbefa;
+  /* soft violet for selected tab */
+  --color-light-response_card_bg: #f3eafd;
+  /* gentle violet-pink for cards/outputs */
 
   /* Font family */
   --font-minecraft: "Press Start 2P"
 }
 
-/* html, body, #root{
-  height: 100%;
-  overflow: hidden;
-} */
 
 @keyframes shooting {
   0% {

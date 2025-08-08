@@ -70,7 +70,7 @@ export default function HeroSection({ alertRef }) {
         // Add the current input as a user message:
         const userMessageObj = { role: "user", content: input };
         // This is the TRUE chat history to send for this turn:
-        const historyToSend = [...messages,userMessageObj];
+        const historyToSend = [...messages, userMessageObj];
 
         // Start loading all selected models
         setLoadingModels(selectedModels);
@@ -112,14 +112,14 @@ export default function HeroSection({ alertRef }) {
             // Remove the model from loading
             setLoadingModels(prev => prev.filter(m => m !== model));
         }));
-        
+
         // Store user + assistant messages in state (for full chat context)
         // Only in conversation mode—with one model
         if (mode === "conversation" && selectedModels.length === 1) {
             const model = selectedModels[0];
             setMessages([
                 ...historyToSend,
-                { role: "assistant", content: replies[model]}
+                { role: "assistant", content: replies[model] }
             ]);
         } else if (mode === "one-liner") {
             setMessages([]); // Or keep last turn if desired for one-liner display
@@ -128,7 +128,7 @@ export default function HeroSection({ alertRef }) {
 
 
     return (
-        <div className="bg-oxford_blue-600 rounded-3xl max-w-7xl mx-auto shadow-lg flex flex-col items-center z-20 relative">
+        <div className="bg-primary rounded-3xl max-w-7xl mx-auto shadow-lg flex flex-col items-center z-20 relative">
             <div className="flex items-center  w-full">
                 <ConversationToggle
                     mode={mode}
@@ -153,7 +153,7 @@ export default function HeroSection({ alertRef }) {
             </div>
             <div className="w-full" style={{ flex: 1, minHeight: 0 }}>
                 <div className="max-h-[18rem] overflow-auto w-full">
-                    <ResponseCard 
+                    <ResponseCard
                         userQuestion={lastUserQuestion}
                         response={toShow || response}
                         loadingModels={loadingModels}

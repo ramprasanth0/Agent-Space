@@ -1,9 +1,9 @@
 import asyncio
 
 from .base import BaseAgentModel
-from agents.perplexity import PerplexityAgent
-from agents.gemini import GeminiAgent
-from agents.open_router import OpenRouterAgent
+from backend.agents.perplexity import PerplexityAgent
+from backend.agents.gemini import GeminiAgent
+from backend.agents.open_router import OpenRouterAgent
 
 AGENT_REGISTRY = {
     "Sonar": PerplexityAgent(),

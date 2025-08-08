@@ -1,4 +1,24 @@
 import React, { useRef, useEffect } from "react";
+import useAnimatedPlaceholder from "./useAnimatedPlaceholder";
+
+
+const PLACEHOLDERS = [
+  "Is gravity real?!",
+  "What is the meaning of life?🤔",
+  "r u going to takeover the planet?😬",
+  "Suggest me a movie🍿",
+  "Why do cats stare at walls?",
+  "Do penguins have knees?",
+  "Code a custom chess game",
+  "Teach me to time travel! 🚋",
+  "Can robots love?❤️",
+  "Do fish get thirsty?🙂",
+  "Tell me a joke",
+  "Convince me unicorns are real.🦄",
+  "Is water wet?",
+  "What happens if you divide by zero?",
+];
+
 
 export default function InputCard({ input, loading, setInput, handleClick }) {
   const textareaRef = useRef();
@@ -12,6 +32,9 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
       el.style.height = Math.min(el.scrollHeight, 120) + "px";
     }
   }, [input]);
+
+  // setting up the animated placeholder
+  const animatedPlaceholder = useAnimatedPlaceholder(PLACEHOLDERS, 1000);
 
   return (
     <div className="p-6 w-full">
@@ -28,7 +51,7 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
           onChange={(e) => setInput(e.target.value)}
           disabled={loading}
           data-testid="inputcard-input"
-          placeholder="Is gravity real?"
+          placeholder={animatedPlaceholder}
           aria-label="User input"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !loading && input.trim()) {

@@ -5,6 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from typing import List,Literal
 
+from backend.schema import LLMStructuredOutput
 from backend.agents.perplexity import PerplexityAgent
 from backend.agents.gemini import GeminiAgent
 from backend.agents.open_router import OpenRouterAgent
@@ -44,7 +45,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     provider: str
-    response: str
+    response: LLMStructuredOutput
 
 #Multi Agent API Request and Response model
 class MultiAgentRequest(BaseModel):
@@ -149,8 +150,8 @@ async def chat_qwen(request: ChatRequest):
 
 ## Multi-agent request API
 
-@app.post("/chat/multi_agent",response_model=List[ChatResponse])
-async def chat_unified(request: MultiAgentRequest):
-    orchestrator = MultiAgentOrchestrator()
-    reply= await orchestrator.get_responses(request.message, request.agents)
-    return reply
+# @app.post("/chat/multi_agent",response_model=List[ChatResponse])
+# async def chat_unified(request: MultiAgentRequest):
+#     orchestrator = MultiAgentOrchestrator()
+#     reply= await orchestrator.get_responses(request.message, request.agents)
+#     return reply

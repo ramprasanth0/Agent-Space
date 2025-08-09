@@ -2,6 +2,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 from .base import BaseAgentModel
+from ..schema import LLMStructuredOutput
 
 #loading environment variable
 load_dotenv()
@@ -45,6 +46,12 @@ class PerplexityAgent(BaseAgentModel):
             #     {"role": "user","content":message},
             # ],
             "messages":chat_history,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": LLMStructuredOutput.model_json_schema()
+                }
+            }
         }
         try:
             # print(api_key)
@@ -61,8 +68,16 @@ class PerplexityAgent(BaseAgentModel):
                     print("Perplexity API error:", response.status_code, error_body)
                     raise Exception(f"Perplexity API call failed: {error_body}")
                 data = response.json()
-                # print("FULL Perplexity API raw response:", type(data))
-                return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+                try:
+                    parsed = LLMStructuredOutput.model_validate_json(data["choices"][0]["message"]["content"])
+                    print(type(parsed))
+                except Exception as e:
+                    # fallback, or return an error placeholder/dict
+                    parsed = LLMStructuredOutput(
+                        answer = "Sorry, I couldn't parse the response as expected.",
+                        extra = {"error": str(e), "raw": data["choices"][0]["message"]["content"]}
+                    )
+                return parsed
 
         #Exception handling
         except httpx.ReadTimeout:                   

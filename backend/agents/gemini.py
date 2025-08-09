@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
-import google.generativeai as genai
-from google.generativeai import types
+from google import genai
+from google.genai import types
 from .base import BaseAgentModel
+from ..schema import LLMStructuredOutput
 
 
 #loading environment variable
@@ -10,58 +11,58 @@ load_dotenv()
 class GeminiAgent():
     def __init__(self):
         # Explicitly set up API key from env (loads from env variable automatically)
-        self.model = genai.GenerativeModel("gemini-2.5-flash")
+        self.client = genai.Client()
 
     #function to format history for gemini LLM
-    def format_history(self,history):
+    def format_history(self, history):
+        """Convert chat history to new SDK format"""
         role_map = {"assistant": "model", "user": "user"}
         formatted = []
+        
         for msg in history:
             if hasattr(msg, "dict"):
                 d = msg.dict()
             else:
                 d = msg
-            formatted.append({
-                "role": role_map.get(d["role"], d["role"]),
-                "parts": [{"text": d["content"]}]
-            })
+                
+            formatted.append(
+                types.Content(
+                    role=role_map.get(d["role"], d["role"]),
+                    parts=[types.Part.from_text(text=d["content"])]
+                )
+            )
         return formatted
 
 
-    def get_response(self, message:str = None, history = None) -> str:
+    def get_response(self, message:str = None, history = None) -> LLMStructuredOutput:
 
         # Compose the chat to Gemini - all previous plus new user message at end
         try:
             chat_history = self.format_history((history or []))
-            response = self.model.generate_content(contents=chat_history)
-            print(response.text)
-            return response.text
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=chat_history,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=LLMStructuredOutput,  # Full schema validation!
+                ),
+            )
+            # The API may already parse JSON and return a dict, or just a string
+            content = response.text
+            try:
+                # Parse structured output
+                out = LLMStructuredOutput.model_validate_json(content)
+            except Exception as exc:
+                # Fallback: include parsing error
+                out = LLMStructuredOutput(
+                    answer=content or "",
+                    extra=[KeyValuePair(key="parse_error", value=repr(exc))]
+                )
+            return out
+            
         except Exception as e:
             print("GeminiAgent error:", repr(e))
-            raise
-
-
-
-    #sample template
-    # def get_response(self, message: str) -> str:
-    # # SDK loads the key from GOOGLE_API_KEY
-    #     client = genai.Client()
-    #     response = client.models.generate_content(
-    #         model=self.model_name,
-    #         contents=[{"role": "user", "parts": [{"text": message}]}]
-    #     )
-    #     # SDK returns a dict-like object; extract text properly
-    #     return response.candidates[0].content.parts[0].text
-
-    # def get_response(self,message:str):
-    #     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
-    #     client = genai.Client()
-
-    #     response = client.models.generate_content(
-    #         model="gemini-2.5-flash", contents=message
-    #     )
-
-    #     # data = response.json()
-    #     return response["candidates"][0]["content"]["parts"][0]["text"]
-
-    
+            return LLMStructuredOutput(
+                answer="", 
+                extra={"error": repr(e)}
+            )

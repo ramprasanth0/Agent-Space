@@ -4,38 +4,41 @@ import json
 import httpx
 from dotenv import load_dotenv
 from .base import BaseAgentModel
-
+from ..schema import LLMStructuredOutput,KeyValuePair
 
 #loading environment variable
 load_dotenv()
 
-
-class OpenRouterAgent(BaseAgentModel):
+class OpenRouterAgent:
     MODEL_NAME_MAP = {
         "R1": "deepseek/deepseek-r1-0528:free",
-        "Qwen": "qwen/qwen3-coder:free"
+        "Qwen": "qwen/qwen3-4b:free"
     }
 
-    #function to format history for respective LLM
-    # def format_history(self,history):
-    #     formatted = []
-    #     for msg in history:
-    #         if hasattr(msg, "dict"):
-    #             formatted.append(msg.dict())
-    #         elif isinstance(msg, dict):
-    #             formatted.append(msg)
-    #         else:
-    #             # Defensive: convert Message-like objects (if accidentally received as a string, raise)
-    #             raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
-    #     return formatted
+    def _build_json_schema(self):
+        """Generate a JSON Schema from the Pydantic model (no extra props allowed)"""
+        schema_dict = LLMStructuredOutput.model_json_schema()
+        schema_dict["additionalProperties"] = False  # Ensure strict mode
+        return {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "llm_structured_output",
+                "strict": True,
+                "schema": schema_dict
+            }
+        }
 
-
-    async def get_response(self,model, message = None, history = None):
-        model_name = self.MODEL_NAME_MAP.get(model)  # default/fallback
+    async def get_response(self, model: str, message: str = None, history=None) -> LLMStructuredOutput:
+        model_name = self.MODEL_NAME_MAP.get(model)
         api_key = os.environ.get("OPENROUTER_API_KEY")
-        chat_history = history or [{"role": "user", "content": message}]
         if not api_key:
-            raise Exception("PERPLEXITY_API_KEY not set in environment.")
+            raise Exception("OPENROUTER_API_KEY not set in environment.")
+
+        # Build conversation history
+        chat_history = history or []
+        if message:
+            chat_history.append({"role": "user", "content": message})
+
         endpoint = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -43,33 +46,36 @@ class OpenRouterAgent(BaseAgentModel):
         }
 
         payload = {
-            "model": model_name,  
+            "model": model_name,
             "messages": chat_history,
-            # 'search_filter': 'very short answers'
+            "response_format": self._build_json_schema()  # Enforce schema
         }
+
         try:
-            # print(api_key)
-            async with httpx.AsyncClient(timeout=30) as client:           # async context manager to handle the api request
+            async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.post(endpoint, headers=headers, json=payload)
-                try:
-                    response.raise_for_status()
-                except httpx.HTTPStatusError:
-                    # print("Perplexity API error:", response.status_code, await response.text())
-                    # raise
-                    try:
-                        error_body = await response.json()
-                    except Exception:
-                        error_body = response.text
-                    print("Open Router API error:", response.status_code, error_body)
-                    raise Exception(f"Open Router API call failed: {error_body}")
+                response.raise_for_status()
                 data = response.json()
-                # print("FULL Perplexity API raw response:", type(data))
-                return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
-        #Exception handling
-        except httpx.ReadTimeout:                   
-            raise Exception("Open Router API timed out. Check network, endpoint, and API key.")
+                # The API should return a JSON string in "content"
+                content = data.get("choices", [{}])[0].get("message", {}).get("content", "{}")
+
+                try:
+                    return LLMStructuredOutput.model_validate_json(content)
+                except Exception as parse_exc:
+                    return LLMStructuredOutput(
+                        answer=content or "",
+                        extra=[KeyValuePair(key="parse_error", value=str(parse_exc))]
+                    )
+
+        except httpx.ReadTimeout:
+            raise Exception("OpenRouter API timed out. Check network, endpoint, and API key.")
+        except httpx.HTTPStatusError:
+            try:
+                error_body = response.json()
+            except Exception:
+                error_body = response.text
+            raise Exception(f"OpenRouter API call failed: {error_body}")
         except Exception as e:
-            print("Probably other error",e)
+            print("OpenRouterAgent error:", e)
             raise
-

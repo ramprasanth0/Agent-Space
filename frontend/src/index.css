@@ -44,6 +44,25 @@
   --color-warning: #b79cdf;
   --color-error: #552e67;
 
+  /* ---- UI-USE-CASE custom properties ----  dark theme-----  */
+  --color-content-title: #dbceef;
+  /* Page Title */
+  --color-label: #e9dbef;
+  /* Input label text-purpureus-900 */
+  --color-tab_bg: #3429af;
+  /* Model selector tab bg */
+  --color-tab_unselected: #0e0c36;
+  /* oxford_blue-500 */
+  --color-tab_unselected_hover: #b79cdf;
+  /* tekhelet-800 */
+  --color-tab_selected: #dbceef;
+  /* tekhelet-900 */
+  --color-response_card_bg: #936bcf;
+  /* tekhelet-700 (Response card) */
+  /* --color-infocard-bg: #06062d; */
+  --color-infocard-border: #00007f;
+
+
   /* Border radius etc. as before */
   --radius-selector: 1rem;
   --radius-field: 0.25rem;
@@ -66,7 +85,7 @@
   /* pale blue, for cards/containers */
   --color-base-300: #c6d7f5;
   /* very soft periwinkle */
-  --color-base-content: #222237;
+  --color-base-content: #e5e5ff;
   /* slightly muted twilight navy for text for soft contrast */
 
   /* Hero/feature card (inspired by upper space/sky in image) */
@@ -101,7 +120,7 @@
   /* pale sky blue for info alerts */
   --color-info-content: #21324a;
 
-  --color-success: #97f294;
+  --color-success: #b6f5b4;
   /* very light spring green */
   --color-success-content: #222b25;
 
@@ -113,6 +132,25 @@
   /* blush red, not too bright for comfort */
   --color-error-content: #3b2323;
   /* Border radius and sizing reflecting softness and elegance */
+
+  /* Custom UI-use-case (matches your design system naming, adjust as desired) */
+  --color-content-title: #413273;
+  /* cosmic indigo for page titles */
+  --color-label: #8143a6;
+  /* pastel magenta for input labels */
+  --color-tab_bg: #bedbf6;
+  /* pastel sky blue for tab bg */
+  --color-tab_unselected: #7790c2;
+  /* very pale for unselected tabs */
+  --color-tab_unselected_hover: #c9afde;
+  /* hover: subtle blue-violet */
+  --color-tab_selected: #dcbefa;
+  /* soft violet for selected tab */
+  --color-response_card_bg: #f3eafd;
+  /* gentle violet-pink for cards/outputs */
+
+  /* --color-infocard-bg: #ffffcc; */
+  --color-infocard-border: #dbceef;
 
   --radius-selector: 0.75rem;
   --radius-field: 0.375rem;
@@ -126,40 +164,6 @@
 }
 
 @theme {
-
-  /* ---- UI-USE-CASE custom properties ----  dark theme-----  */
-  --color-dark-content-title: #dbceef;
-  /* Page Title */
-  --color-dark-label: #e9dbef;
-  /* Input label text-purpureus-900 */
-  --color-dark-tab_bg: #3429af;
-  /* Model selector tab bg */
-  --color-dark-tab_unselected: #0e0c36;
-  /* oxford_blue-500 */
-  --color-dark-tab_unselected_hover: #b79cdf;
-  /* tekhelet-800 */
-  --color-dark-tab_selected: #dbceef;
-  /* tekhelet-900 */
-  --color-dark-response_card_bg: #936bcf;
-  /* tekhelet-700 (Response card) */
-
-
-  /* Custom UI-use-case (matches your design system naming, adjust as desired) */
-  --color-light-content-title: #413273;
-  /* cosmic indigo for page titles */
-  --color-light-label: #8143a6;
-  /* pastel magenta for input labels */
-  --color-light-tab_bg: #bedbf6;
-  /* pastel sky blue for tab bg */
-  --color-light-tab_unselected: #eaf3fb;
-  /* very pale for unselected tabs */
-  --color-light-tab_unselected_hover: #b9cdfa;
-  /* hover: subtle blue-violet */
-  --color-light-tab_selected: #dcbefa;
-  /* soft violet for selected tab */
-  --color-light-response_card_bg: #f3eafd;
-  /* gentle violet-pink for cards/outputs */
-
   /* Font family */
   --font-minecraft: "Press Start 2P"
 }

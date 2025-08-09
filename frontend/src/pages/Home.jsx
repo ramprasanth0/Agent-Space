@@ -4,13 +4,13 @@ import MoodToggle from "../components/MoodToggle"
 import Alert from "../components/Alert"
 import InfoCard from "../components/InfoCard"
 
-export default function Home({ theme, toggleTheme }) {
+export default function Home({ toggleTheme }) {
   const alertRef = useRef();
   return (
     <div>
       <header className="relative text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20">
         <div className="absolute top-6 right-10">
-          <MoodToggle theme={theme} toggleTheme={toggleTheme} />
+          <MoodToggle toggleTheme={toggleTheme} />
         </div>
         <div className="absolute top-9 left-10">
           <InfoCard />

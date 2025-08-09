@@ -40,7 +40,7 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
     <div className="p-6 w-full">
       <label
         htmlFor="inputcard-input"
-        className="text-purpureus-900 flex items-center font-medium gap-2 mb-4"
+        className="flex items-center font-medium gap-2 mb-4"
       >
         <div className="shrink-0">Your Unhinged Queries:</div>
         <textarea

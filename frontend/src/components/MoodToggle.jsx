@@ -1,20 +1,29 @@
 // MoodToggle.jsx
-import React from "react";
+import React, { useEffect, useState } from 'react';
 
-export default function MoodToggle({ theme, toggleTheme }) {
-  // Check if current theme is light (for the checkbox and icon)
-  const isDark = theme === "agentspace-dark";
+export default function MoodToggle({ toggleTheme }) {
+  const [isDark, setIsDark] = useState(false);
+
+  // Sync once from DOM
+  useEffect(() => {
+    const current = document.documentElement.getAttribute('data-theme');
+    setIsDark(current === 'agentspace-dark');
+  }, []);
+
+  const onChange = () => {
+    setIsDark(v => !v);
+    toggleTheme();
+  };
 
   return (
-    <label className="swap swap-rotate tooltip" aria-label="toggle theme" >
+    <label className="swap swap-rotate" aria-label="toggle theme">
       <input
         type="checkbox"
         checked={isDark}
-        onChange={toggleTheme}
+        onChange={onChange}
         className="theme-controller"
         aria-label="Toggle light/dark mode"
       />
-
       {/* Moon icon for dark mode */}
       <svg
         data-testid="moon-icon"

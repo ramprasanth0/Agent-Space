@@ -47,7 +47,7 @@ export default function ModelSelector({
                         className={`flex max-w-xs px-4 py-2 rounded-full transition font-semibold border border-none
               ${isSelected
                                 ? "bg-[var(--color-secondary)] text-black"
-                                : "bg-[var(--color-dark-tab_unselected)] text-white hover:bg-[var(--color-dark-tab_unselected_hover)] hover:text-black"
+                                : "bg-[var(--color-tab_unselected)] text-white hover:bg-[var(--color-tab_unselected_hover)] hover:text-black"
                             }`}
                     >
                         <img

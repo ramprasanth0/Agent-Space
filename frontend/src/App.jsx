@@ -1,66 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Home from './pages/Home';
 import StarBackground from './components/StarField/StarBackground';
 
 export default function App() {
-  // Centralized theme state:
-  const [theme, setTheme] = useState("agentspace-dark");
+  // 'system' mode follows OS theme, 'manual' mode respects user's toggle choice
+  const [mode, setMode] = useState('system');
+  const [theme, setTheme] = useState('agentspace-dark');
 
-  // On mount, restore from localStorage or system preference
+  // On initial load, set theme from localStorage or system preference
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved) {
-      setTheme(saved);
-    } else {
-      // Checks system color-scheme
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? "agentspace-dark" : "agentspace-light");
+    const savedMode = localStorage.getItem('theme-mode');
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedMode === 'manual' && savedTheme) {
+      setMode('manual');
+      setTheme(savedTheme);
+      return;
     }
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    setMode('system');
+    setTheme(mq.matches ? 'agentspace-dark' : 'agentspace-light');
   }, []);
 
-  // Keep <html data-theme> and localStorage in sync with state
+  // Listen for OS theme changes, but only if in 'system' mode
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+    if (mode !== 'system') return;
 
-  // Toggle theme function
-  const toggleTheme = () => {
-    setTheme(t => t === "agentspace-dark" ? "agentspace-light" : "agentspace-dark");
-  };
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e) => {
+      setTheme(e.matches ? 'agentspace-dark' : 'agentspace-light');
+    };
 
-  const isDark = theme === "agentspace-dark";
+    mq.addEventListener?.('change', onChange);
+    mq.addListener?.(onChange); // Fallback for older Safari
+
+    return () => {
+      mq.removeEventListener?.('change', onChange);
+      mq.removeListener?.(onChange);
+    };
+  }, [mode]);
+
+  // Apply theme to the DOM and persist settings when they change
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme-mode', mode);
+    if (mode === 'manual') {
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme, mode]);
+
+  // Memoized callbacks to prevent re-renders in child components
+  const toggleTheme = useCallback(() => {
+    setMode('manual'); // User interaction switches mode to manual
+    setTheme((t) => (t === 'agentspace-dark' ? 'agentspace-light' : 'agentspace-dark'));
+  }, []);
+
+  const useSystemTheme = useCallback(() => {
+    setMode('system');
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    setTheme(mq.matches ? 'agentspace-dark' : 'agentspace-light');
+    localStorage.removeItem('theme'); // Clear manual choice
+  }, []);
 
   return (
-    <>
-      {isDark ? (
-        // Dark theme: video background
-        <div className="min-h-screen relative overflow-hidden">
-          <video
-            src="/assets/background_video.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute top-0 left-0 w-full h-full object-cover bg-black/50 z-0"
-            aria-hidden="true"
-          />
-          <StarBackground starCount={25} />
-          <div className="relative z-30">
-            <Home theme={theme} toggleTheme={toggleTheme} />
-          </div>
-        </div>
-      ) : (
-        // Light theme: static image
-        <div className="min-h-screen bg-[url(./assets/light.jpg)] bg-cover bg-center relative overflow-hidden">
-          <StarBackground starCount={25} />
-          <div className="relative z-30">
-            <Home theme={theme} toggleTheme={toggleTheme} />
-          </div>
-        </div>
-      )}
-    </>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Backgrounds are swapped via CSS opacity for a smooth transition without re-mounting */}
+      <video
+        src="/assets/background_video.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0
+                   [html[data-theme='agentspace-dark']_&]:opacity-100
+                   [html[data-theme='agentspace-light']_&]:opacity-0
+                   transition-opacity duration-300"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 w-full h-full bg-[url(./assets/light.jpg)] bg-cover bg-center z-0
+                   [html[data-theme='agentspace-dark']_&]:opacity-0
+                   [html[data-theme='agentspace-light']_&]:opacity-100
+                   transition-opacity duration-300"
+        aria-hidden="true"
+      />
+
+      <StarBackground starCount={25} />
+      <div className="relative z-30">
+        <Home toggleTheme={toggleTheme} useSystemTheme={useSystemTheme} mode={mode} />
+      </div>
+    </div>
   );
 }
 

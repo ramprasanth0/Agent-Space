@@ -17,10 +17,10 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
       {response.map((res, idx) => (
         <div
           key={res.provider || idx}
-          className="bg-dark-response_card_bg text-night rounded-3xl m-2 p-3"
+          className="bg-[var(--color-response_card_bg)] rounded-3xl m-2 p-3"
         >
-          <div className="m-3 mb-0 font-bold text-black">{res.provider}</div>
-          <div className="m-2 mt-0 rounded-xl overflow-x-auto font-bold p-2">{userQuestion}</div>
+          <div className="m-3 mb-0 font-bold text-[var(--color-tab_unselected)]">{res.provider}</div>
+          <div className="m-2 mt-0 rounded-xl overflow-x-auto font-bold p-2 text-[var(--color-response_card_content)]">{userQuestion}</div>
 
           {loadingModels.includes(res.provider) || res.response === null ? (
             <div className="space-y-2 w-full mt-3">
@@ -30,7 +30,7 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
               {/* <div className="skeleton bg-white h-6 w-full"></div> */}
             </div>
           ) : (
-            <div className="m-2 mt-4 rounded-xl overflow-x-auto p-2">{res.response}</div>
+            <div className="m-2 mt-4 rounded-xl overflow-x-auto p-2 text-[var(--color-response_card_content)]">{res.response}</div>
           )}
 
           {/* <div className="m-2">{res.response}</div> */}

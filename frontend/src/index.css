@@ -58,6 +58,7 @@
   --color-tab_selected: #dbceef;
   /* tekhelet-900 */
   --color-response_card_bg: #936bcf;
+  --color-response_card_content: #ffffff;
   /* tekhelet-700 (Response card) */
   /* --color-infocard-bg: #06062d; */
   --color-infocard-border: #00007f;
@@ -146,9 +147,9 @@
   /* hover: subtle blue-violet */
   --color-tab_selected: #dcbefa;
   /* soft violet for selected tab */
-  --color-response_card_bg: #f3eafd;
+  --color-response_card_bg: #e9e1f5;
   /* gentle violet-pink for cards/outputs */
-
+  --color-response_card_content: #000000;
   /* --color-infocard-bg: #ffffcc; */
   --color-infocard-border: #dbceef;
 

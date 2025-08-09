@@ -1,4 +1,3 @@
-// ModelSelector.jsx
 import React from "react";
 
 import deepSeek from '../assets/deepSeek.svg';

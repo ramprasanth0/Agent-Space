@@ -19,11 +19,11 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
           key={res.provider || idx}
           className="bg-[var(--color-response_card_bg)] rounded-3xl m-2 p-3"
         >
-          <div className="m-3 mb-0 font-bold text-[var(--color-tab_unselected)]">{res.provider}</div>
-          <div className="m-2 mt-0 rounded-xl overflow-x-auto font-bold p-2 text-[var(--color-response_card_content)]">{userQuestion}</div>
+          <div className="font-bold text-[var(--color-tab_unselected)] pl-2">{res.provider}</div>
+          <div className="rounded-xl overflow-x-auto font-bold pl-2 text-[var(--color-response_card_content)]">{userQuestion}</div>
 
           {loadingModels.includes(res.provider) || res.response === null ? (
-            <div className="space-y-2 w-full mt-3">
+            <div className="space-y-2 p-2 w-full">
               <div className="skeleton bg-white h-4 w-3/4"></div>
               <div className="skeleton bg-white h-6 w-full"></div>
               <div className="skeleton bg-white h-6 w-full"></div>

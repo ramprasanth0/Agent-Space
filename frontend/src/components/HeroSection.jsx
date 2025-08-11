@@ -99,11 +99,11 @@ export default function HeroSection({ alertRef }) {
                     default:
                         data = { response: "Model not implemented yet." };
                 }
-            } catch {
-                data = { response: "Error: Unable to contact backend." };
+            } catch (err) {
+                data = { response: { answer: "Error: Unable to contact backend." } };
             }
             // Update just this card's response
-            replies[model] = data.response != null ? String(data.response) : "No response.";
+            replies[model] = data.response;
             setResponse(prev =>
                 prev.map(r =>
                     r.provider === model ? { ...r, response: data.response } : r

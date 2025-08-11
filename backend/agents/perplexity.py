@@ -8,12 +8,26 @@ from ..schema import LLMStructuredOutput
 load_dotenv()
 
 
-class PerplexityAgent:
+class PerplexityAgent(BaseAgentModel):
+
+    #function to format history for respective LLM
+    # def format_history(self,history):
+    #     formatted = []
+    #     for msg in history:
+    #         if hasattr(msg, "dict"):
+    #             formatted.append(msg.dict())
+    #         elif isinstance(msg, dict):
+    #             formatted.append(msg)
+    #         else:
+    #             # Defensive: convert Message-like objects (if accidentally received as a string, raise)
+    #             raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
+    #     return formatted
+
 
     async def get_response(self, message:str = None, history = None):
         # print(history)
         api_key = os.environ.get("PERPLEXITY_API_KEY")
-        chat_history = history or []
+        chat_history = history or [{"role": "user", "content": message}]
         if not api_key:
             raise Exception("PERPLEXITY_API_KEY not set in environment.")
         endpoint = "https://api.perplexity.ai/chat/completions"
@@ -27,6 +41,10 @@ class PerplexityAgent:
 
         payload = {
             "model": "sonar",  # available "sonar-pro" & "sonar"
+            # "messages": [
+            #     {"role": "system", "content": "provide answers in less than 15 words."},
+            #     {"role": "user","content":message},
+            # ],
             "messages":chat_history,
             "response_format": {
                 "type": "json_schema",
@@ -36,13 +54,23 @@ class PerplexityAgent:
             }
         }
         try:
+            # print(api_key)
             async with httpx.AsyncClient(timeout=30) as client:           # async context manager to handle the api request
                 # print(f"payload,{payload}")
                 response = await client.post(endpoint, headers=headers, json=payload)
-                response.raise_for_status()
+                try:
+                    response.raise_for_status()
+                except Exception:
+                    try:
+                        error_body = await response.json()
+                    except Exception:
+                        error_body = await response.text()
+                    print("Perplexity API error:", response.status_code, error_body)
+                    raise Exception(f"Perplexity API call failed: {error_body}")
                 data = response.json()
                 try:
-                    parsed = LLMStructuredOutput.model_validate_json(content)
+                    parsed = LLMStructuredOutput.model_validate_json(data["choices"][0]["message"]["content"])
+                    print(type(parsed))
                 except Exception as e:
                     # fallback, or return an error placeholder/dict
                     parsed = LLMStructuredOutput(

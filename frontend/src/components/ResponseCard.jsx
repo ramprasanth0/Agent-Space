@@ -1,4 +1,6 @@
 import React from "react";
+import StructuredContentDisplay from "./StructuredContentDisplay";
+
 export default function ResponseCard({ userQuestion, response, loadingModels }) {
   if (!Array.isArray(response) || response.length === 0) return null;
   const gridColsClass =
@@ -30,7 +32,8 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
               {/* <div className="skeleton bg-white h-6 w-full"></div> */}
             </div>
           ) : (
-            <div className="m-2 mt-4 rounded-xl overflow-x-auto p-2 text-[var(--color-response_card_content)]">{res.response}</div>
+            // <div className="m-2 mt-4 rounded-xl overflow-x-auto p-2 text-[var(--color-response_card_content)]">{res.response.answer}</div>
+            <StructuredContentDisplay content={res.response}/>
           )}
 
           {/* <div className="m-2">{res.response}</div> */}

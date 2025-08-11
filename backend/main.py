@@ -79,6 +79,8 @@ async def chat_perplexity(request: ChatRequest):
         history_payload = history_normalized
     try:
         result = await perplexity_agent.get_response(message=request.message,history=history_payload)
+        debug = ChatResponse(provider= "perplexity",response= result)
+        print(debug)
         return ChatResponse(provider= "perplexity",response= result)
     except Exception as e:
         print("Perplexity Agent error:", e)
@@ -99,6 +101,8 @@ async def chat_gemini(request: ChatRequest):
         history_payload = history_normalized
     try:
         reply = await run_in_threadpool(gemini_agent.get_response, request.message, history_payload)
+        debug = ChatResponse(provider= "gemini",response= reply)
+        print(debug)
         return ChatResponse(provider="gemini", response= reply)
     except Exception as e:
         print("Gemini Agent error:", e)

@@ -7,6 +7,21 @@ import ResponseCard from "./ResponseCard";
 import ConversationToggle from "./ConversationToggle";
 // import Alert from "./Alert";
 
+/**
+ * Sanitizes the chat history to ensure it's in a simple, API-friendly format.
+ * The backend expects the 'content' of every message to be a string.
+ */
+const sanitizeHistoryForApi = (messages) => {
+    return messages.map(msg => {
+        // If the content is an object (a structured response), extract just the 'answer' string.
+        if (typeof msg.content === 'object' && msg.content !== null) {
+            return { role: msg.role, content: msg.content.answer || '' };
+        }
+        // Otherwise, the content is already a string (from the user).
+        return msg;
+    });
+};
+
 export default function HeroSection({ alertRef }) {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
 
@@ -70,7 +85,10 @@ export default function HeroSection({ alertRef }) {
         // Add the current input as a user message:
         const userMessageObj = { role: "user", content: input };
         // This is the TRUE chat history to send for this turn:
-        const historyToSend = [...messages, userMessageObj];
+        const currentHistory = [...messages, userMessageObj];
+
+        // Creating a sanitized version of the history specifically for the API call.
+        const historyToSend = sanitizeHistoryForApi(currentHistory);
 
         // Start loading all selected models
         setLoadingModels(selectedModels);
@@ -99,11 +117,11 @@ export default function HeroSection({ alertRef }) {
                     default:
                         data = { response: "Model not implemented yet." };
                 }
-            } catch (err) {
+            } catch {
                 data = { response: { answer: "Error: Unable to contact backend." } };
             }
             // Update just this card's response
-            replies[model] = data.response;
+            replies[model] = data.response || { answer: "No response" };
             setResponse(prev =>
                 prev.map(r =>
                     r.provider === model ? { ...r, response: data.response } : r
@@ -118,7 +136,7 @@ export default function HeroSection({ alertRef }) {
         if (mode === "conversation" && selectedModels.length === 1) {
             const model = selectedModels[0];
             setMessages([
-                ...historyToSend,
+                ...currentHistory,
                 { role: "assistant", content: replies[model] }
             ]);
         } else if (mode === "one-liner") {

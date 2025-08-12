@@ -27,7 +27,7 @@ async def home():
 
 
 #history storage for each session
-history=[]
+# history=[]
 #agents initialization
 perplexity_agent = PerplexityAgent()
 gemini_agent=GeminiAgent()

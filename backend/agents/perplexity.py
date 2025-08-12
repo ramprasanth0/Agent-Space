@@ -7,7 +7,6 @@ from ..schema import LLMStructuredOutput
 #loading environment variable
 load_dotenv()
 
-
 class PerplexityAgent(BaseAgentModel):
 
     #function to format history for respective LLM

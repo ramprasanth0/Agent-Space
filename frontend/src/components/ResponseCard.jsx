@@ -33,7 +33,7 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
             </div>
           ) : (
             // <div className="m-2 mt-4 rounded-xl overflow-x-auto p-2 text-[var(--color-response_card_content)]">{res.response.answer}</div>
-            <StructuredContentDisplay content={res.response}/>
+            <StructuredContentDisplay content={res.response} />
           )}
 
           {/* <div className="m-2">{res.response}</div> */}

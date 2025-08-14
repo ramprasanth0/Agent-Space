@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useRef } from "react"
-import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, sendChatToMultiAgent } from "../api/Agents"
+import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, streamChatToPerplexity } from "../api/Agents"
 import InputCard from './InputCard'
 import ModelSelector from "./ModelSelector";
 import ResponseCard from "./ResponseCard";
@@ -106,8 +106,53 @@ export default function HeroSection({ alertRef }) {
             try {
                 switch (model) {
                     case "Sonar":
-                        console.log('Sending history to backend:', historyToSend);
-                        data = await sendChatToPerplexity(input, historyToSend, mode); break;
+                        console.log('Streaming from backend:', historyToSend);
+                        
+                        // Track the final structured response for conversation history
+                        let finalStructuredResponse = null;
+                        
+                        await streamChatToPerplexity(
+                            input,
+                            historyToSend,
+                            mode,
+                            (partial) => {
+                            // Update the response with whatever we receive
+                            setResponse(prev =>
+                                prev.map(r =>
+                                r.provider === model 
+                                    ? { ...r, response: partial }
+                                    : r
+                                )
+                            );
+                            
+                            // If this looks like the final structured response, save it
+                            if (partial.sources || partial.facts || partial.explanation) {
+                                finalStructuredResponse = partial;
+                            }
+                            },
+                            () => {
+                            // Stream complete - remove loading
+                            setLoadingModels(prev => prev.filter(m => m !== model));
+                            
+                            // Store the final structured response for conversation history
+                            if (finalStructuredResponse) {
+                                replies[model] = finalStructuredResponse;
+                            }
+                            },
+                            (error) => {
+                            console.error('Streaming error:', error);
+                            setResponse(prev =>
+                                prev.map(r =>
+                                r.provider === model
+                                    ? { ...r, response: { answer: `Error: ${error}` } }
+                                    : r
+                                )
+                            );
+                            setLoadingModels(prev => prev.filter(m => m !== model));
+                            replies[model] = { answer: `Error: ${error}` };
+                            }
+                        );
+                        break;
                     case "Gemini":
                         data = await sendChatToGemini(input, historyToSend, mode); break;
                     case "R1":
@@ -124,7 +169,7 @@ export default function HeroSection({ alertRef }) {
             replies[model] = data.response || { answer: "No response" };
             setResponse(prev =>
                 prev.map(r =>
-                    r.provider === model ? { ...r, response: data.response } : r
+                    r.provider === model ? { ...r, response: data.response || { answer: "No response" } } : r
                 )
             );
             // Remove the model from loading
@@ -147,7 +192,7 @@ export default function HeroSection({ alertRef }) {
 
     return (
         <div className="bg-primary rounded-3xl max-w-7xl mx-auto shadow-lg flex flex-col items-center z-20 relative">
-            <div className="flex items-center  w-full">
+            <div className="flex items-center w-full">
                 <ConversationToggle
                     mode={mode}
                     setMode={handleModeChange}

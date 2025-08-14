@@ -7,6 +7,7 @@ export default function StructuredContentDisplay({ content }) {
     <div className="p-3 space-y-4">
       {/* Answer with proper markdown rendering */}
       <div className="prose prose-sm max-w-none prose-invert">
+      {/* <div className={`prose prose-sm max-w-none prose-invert ${isStreaming ? 'streaming-text' : ''}`}> */}
         <ReactMarkdown
           components={{
             code({ node, inline, className, children, ...props }) {

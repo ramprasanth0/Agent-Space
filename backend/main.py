@@ -1,9 +1,11 @@
 from fastapi import FastAPI,HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from typing import List,Literal
+import asyncio
+import json
 
 from backend.schema import LLMStructuredOutput
 from backend.agents.perplexity import PerplexityAgent
@@ -54,7 +56,7 @@ class MultiAgentRequest(BaseModel):
 
 
 #function to normalize history
-def normailize_history(history):
+def normalize_history(history):
     normalized_dicts = []
     for msg in history:
         if isinstance(msg, dict):
@@ -66,13 +68,67 @@ def normailize_history(history):
     return normalized_dicts
 
 
+####### stream helper functions ##########
+async def sse_event(data: str):
+    return f"data: {data}\n\n"
+
+
+###############################################
+######## streaming api's ##################
+###############################################
+
+@app.post("/stream/perplexity")
+async def stream_perplexity(request: ChatRequest):
+    hist = normalize_history(request.history)
+    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+
+    async def event_generator():
+        accumulated_answer = ""
+        
+        try:
+            # Phase 1: Stream raw text
+            async for partial in perplexity_agent.stream_response(
+                message=request.message,
+                history=history_payload
+            ):
+                token = partial.get("answer", "")
+                accumulated_answer += token
+                # Stream individual tokens
+                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                await asyncio.sleep(0)
+
+            # Phase 2: Get structured response with the accumulated answer
+            # Make a single call to get structured data
+            structured_response = await perplexity_agent.get_response(
+                message=request.message,
+                history=history_payload
+            )
+            
+            # Use the streamed answer (might be more complete)
+            structured_response.answer = accumulated_answer
+            
+            # Send the complete structured response
+            yield f"data: {json.dumps({'structured': structured_response.model_dump()}, ensure_ascii=False)}\n\n"
+            yield "data: [DONE]\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+
+###############################################
+######## non streaming api's ##################
+###############################################
+
 #Integration of Perplexity LLM
 @app.post("/chat/perplexity",response_model=ChatResponse)
 async def chat_perplexity(request: ChatRequest):
 
     #conversation state enabled perplexity agent
     # print(f"request,{request}")
-    history_normalized=normailize_history(request.history)
+    history_normalized=normalize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
@@ -94,7 +150,7 @@ async def chat_perplexity(request: ChatRequest):
 @app.post("/chat/gemini",response_model=ChatResponse)
 async def chat_gemini(request: ChatRequest):
 
-    history_normalized=normailize_history(request.history)
+    history_normalized=normalize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
@@ -117,7 +173,7 @@ async def chat_gemini(request: ChatRequest):
 #Integration of deepseek LLM (Open Router)
 @app.post("/chat/deepseek",response_model=ChatResponse)
 async def chat_deepseek(request: ChatRequest):
-    history_normalized=normailize_history(request.history)
+    history_normalized=normalize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
@@ -136,7 +192,7 @@ async def chat_deepseek(request: ChatRequest):
 #Integration of qwen LLM (Open Router)
 @app.post("/chat/qwen",response_model=ChatResponse)
 async def chat_qwen(request: ChatRequest):
-    history_normalized=normailize_history(request.history)
+    history_normalized=normalize_history(request.history)
     if request.mode == "one-liner":
         history_payload = [{"role": "user", "content": request.message}]
     else:
@@ -159,3 +215,4 @@ async def chat_qwen(request: ChatRequest):
 #     orchestrator = MultiAgentOrchestrator()
 #     reply= await orchestrator.get_responses(request.message, request.agents)
 #     return reply
+

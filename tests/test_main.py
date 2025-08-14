@@ -1,6 +1,5 @@
 import pytest
-pytest.skip("Skipping this test file", allow_module_level=True)
-
+import httpx
 from fastapi.testclient import TestClient
 from backend.main import app  # adjust import as needed
 
@@ -90,22 +89,20 @@ def test_chat_qwen(monkeypatch, client):
     assert resp.json() == {"provider": "qwen", "response": "FAKE-QWEN"}
 
 
-def test_chat_multi_agent(monkeypatch, client):
-    from backend.agents.multi_agent_orchestrator import MultiAgentOrchestrator
+@pytest.mark.asyncio
+async def test_stream_perplexity():
+    async with httpx.AsyncClient(timeout=None) as client:
+        async with client.stream(
+            "POST",
+            "http://127.0.0.1:8000/stream/perplexity",
+            json={"message": "write a essay about french revolution", "history": [], "mode": "one-liner"}
+        ) as r:
+            chunks = []
+            async for line in r.aiter_lines():
+                if line:
+                    chunks.append(line)
+                    print(line)
 
-    async def mock_get_responses(message, agents):
-        return [{"provider": agent, "response": f"{agent.upper()} RESPONSE"} for agent in agents]
-
-    monkeypatch.setattr(MultiAgentOrchestrator, "get_responses", mock_get_responses)
-
-    payload = {
-        "message": "multi-agent test",
-        "agents": ["perplexity", "gemini"]
-    }
-    resp = client.post("/chat/multi_agent", json=payload)
-    assert resp.status_code == 200
-    expected = [
-        {"provider": "perplexity", "response": "PERPLEXITY RESPONSE"},
-        {"provider": "gemini", "response": "GEMINI RESPONSE"}
-    ]
-    assert resp.json() == expected
+            # Assert that stream ends with [DONE]
+            assert any("[DONE]" in chunk for chunk in chunks)
+        

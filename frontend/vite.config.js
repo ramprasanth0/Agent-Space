@@ -11,6 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/chat': 'http://localhost:8000', // proxy all /chat requests to FastAPI
+      '/stream': 'http://localhost:8000', // proxy all /stream requests to FastAPI
     }
   }
 });

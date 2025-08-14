@@ -1,11 +1,13 @@
 import os
 import httpx
+import json
 from dotenv import load_dotenv
 from .base import BaseAgentModel
 from ..schema import LLMStructuredOutput
 
 #loading environment variable
 load_dotenv()
+
 
 class PerplexityAgent(BaseAgentModel):
 
@@ -87,16 +89,45 @@ class PerplexityAgent(BaseAgentModel):
 
 
 
-        #sample template
-        # response = self.client_instance.chat.completions.create(
-        #     model="sonar-pro",
-        #     messages=[
-        #         {"role": "user", "content": "Latest climate research findings"}
-        #     ],
-        #     max_tokens=100,
-        #     # search_domain_filter=["nature.com", "science.org"],
-        #     # search_recency_filter="month",
-        #     # return_citations=True,
-        #     # return_images=False
-        # )
-        # return response.choices[0].message.content
+    ############## streaming function ################
+    async def stream_response(self, message: str, history=None):
+        """Stream raw text response without structured format"""
+        api_key = os.environ.get("PERPLEXITY_API_KEY")
+        if not api_key:
+            raise Exception("PERPLEXITY_API_KEY not set in environment.")
+
+        endpoint = "https://api.perplexity.ai/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "sonar",
+            "messages": history or [{"role": "user", "content": message}],
+            "stream": True,  # Enable streaming
+            # DON'T use structured format for streaming - just get raw text
+            # Remove the response_format for streaming
+        }
+
+        async with httpx.AsyncClient(timeout=None) as client:
+            async with client.stream("POST", endpoint, headers=headers, json=payload) as response:
+                response.raise_for_status()
+
+                async for line in response.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+
+                    data = line[len("data: "):].strip()
+                    if data == "[DONE]":
+                        break
+
+                    try:
+                        parsed = json.loads(data)
+                        delta = parsed["choices"][0].get("delta", {})
+                        token = delta.get("content", "")
+                        if token:
+                            # Yield just the token for streaming
+                            yield {"answer": token}
+                    except (json.JSONDecodeError, KeyError):
+                        continue

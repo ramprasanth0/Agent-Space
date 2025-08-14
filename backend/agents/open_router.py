@@ -28,7 +28,7 @@ class OpenRouterAgent:
             }
         }
 
-    async def get_response(self, model: str, message: str = None, history=None) -> LLMStructuredOutput:
+    async def get_response(self, message: str = None , model: str ="R1", history=None) -> LLMStructuredOutput:
         model_name = self.MODEL_NAME_MAP.get(model)
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
@@ -78,4 +78,64 @@ class OpenRouterAgent:
             raise Exception(f"OpenRouter API call failed: {error_body}")
         except Exception as e:
             print("OpenRouterAgent error:", e)
+            raise
+
+
+
+
+    async def stream_response(self, message: str = None, model: str = "R1", history=None):
+        """Stream response from OpenRouter"""
+        model_name = self.MODEL_NAME_MAP.get(model)
+        if not model_name:
+            raise Exception(f"Model {model} not supported")
+            
+        api_key = os.environ.get("OPENROUTER_API_KEY")
+        if not api_key:
+            raise Exception("OPENROUTER_API_KEY not set in environment.")
+
+        # Build conversation history
+        chat_history = history or []
+        if message:
+            chat_history.append({"role": "user", "content": message})
+
+        endpoint = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": model_name,
+            "messages": chat_history,
+            "stream": True,  # Enable streaming
+            # Note: structured output typically doesn't work with streaming
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=None) as client:
+                async with client.stream("POST", endpoint, headers=headers, json=payload) as response:
+                    response.raise_for_status()
+
+                    async for line in response.aiter_lines():
+                        if not line.startswith("data: "):
+                            continue
+
+                        data = line[len("data: "):].strip()
+                        if data == "[DONE]":
+                            break
+
+                        try:
+                            parsed = json.loads(data)
+                            delta = parsed.get("choices", [{}])[0].get("delta", {})
+                            token = delta.get("content", "")
+                            
+                            if token:
+                                yield {"answer": token}
+                        except json.JSONDecodeError:
+                            continue
+                        except (KeyError, IndexError):
+                            continue
+
+        except Exception as e:
+            print(f"OpenRouterAgent streaming error: {e}")
             raise

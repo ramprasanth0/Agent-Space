@@ -74,7 +74,7 @@ async def sse_event(data: str):
 
 
 ###############################################
-######## streaming api's ##################
+######## streaming api endpoints ##################
 ###############################################
 
 @app.post("/stream/perplexity")
@@ -116,6 +116,120 @@ async def stream_perplexity(request: ChatRequest):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+
+# Streaming endpoint for Gemini
+@app.post("/stream/gemini")
+async def stream_gemini(request: ChatRequest):
+    hist = normalize_history(request.history)
+    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+
+    async def event_generator():
+        accumulated_answer = ""
+        
+        try:
+            # Stream tokens
+            async for partial in gemini_agent.stream_response(
+                message=request.message,
+                history=history_payload
+            ):
+                token = partial.get("answer", "")
+                accumulated_answer += token
+                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                await asyncio.sleep(0)
+
+            # Create final structured response from accumulated text
+            final_structured = LLMStructuredOutput(
+                answer=accumulated_answer,
+                explanation=None,
+                sources=None,
+                facts=None,
+                code=None,
+                language=None,
+                actions=None,
+                extra=None
+            )
+            
+            yield f"data: {final_structured.model_dump_json()}\n\n"
+            yield "data: [DONE]\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.post("/stream/deepseek")
+async def stream_deepseek(request: ChatRequest):
+    hist = normalize_history(request.history)
+    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+
+    async def event_generator():
+        accumulated_answer = ""
+        
+        try:
+            async for partial in openRouterAgent.stream_response(
+                message=request.message,
+                model="R1",
+                history=history_payload
+            ):
+                token = partial.get("answer", "")
+                accumulated_answer += token
+                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                await asyncio.sleep(0)
+
+            # Phase 2: Get structured response with the accumulated answer
+            # Make a single call to get structured data
+            structured_response = await openRouterAgent.get_response(
+                message=request.message,
+                history=history_payload
+            )
+            
+            # Use the streamed answer (might be more complete)
+            structured_response.answer = accumulated_answer
+            
+            # Send the complete structured response
+            yield f"data: {json.dumps({'structured': structured_response.model_dump()}, ensure_ascii=False)}\n\n"
+            yield "data: [DONE]\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.post("/stream/qwen")
+async def stream_qwen(request: ChatRequest):
+    hist = normalize_history(request.history)
+    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+
+    async def event_generator():
+        accumulated_answer = ""
+        
+        try:
+            async for partial in openRouterAgent.stream_response(
+                message=request.message,
+                model="Qwen",
+                history=history_payload
+            ):
+                token = partial.get("answer", "")
+                accumulated_answer += token
+                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                await asyncio.sleep(0)
+
+            # Get final structured response
+            final_structured = await openRouterAgent.get_response(
+                message=request.message,
+                model="Qwen",
+                history=history_payload
+            )
+            final_structured.answer = accumulated_answer
+            
+            yield f"data: {final_structured.model_dump_json()}\n\n"
+            yield "data: [DONE]\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 ###############################################

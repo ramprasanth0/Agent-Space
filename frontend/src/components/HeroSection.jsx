@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useRef } from "react"
-import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, streamChatToPerplexity } from "../api/Agents"
+import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, streamChatToPerplexity, streamChatToGemini } from "../api/Agents"
 import InputCard from './InputCard'
 import ModelSelector from "./ModelSelector";
 import ResponseCard from "./ResponseCard";
@@ -154,7 +154,31 @@ export default function HeroSection({ alertRef }) {
                         );
                         break;
                     case "Gemini":
-                        data = await sendChatToGemini(input, historyToSend, mode); break;
+                        await streamChatToGemini(
+                            input,
+                            historyToSend,
+                            mode,
+                            (partial) => {
+                            setResponse(prev =>
+                                prev.map(r =>
+                                r.provider === model
+                                    ? (partial.sources || partial.facts || partial.explanation
+                                    ? { ...r, response: partial } // Final structured
+                                    : { ...r, response: { answer: partial.answer } }) // CHANGED: Just set, don't add
+                                    : r
+                                )
+                            );
+                            },
+                            () => setLoadingModels(prev => prev.filter(m => m !== model)),
+                            (err) => {
+                            setResponse(prev =>
+                                prev.map(r => r.provider === model ? { ...r, response: { answer: "Error streaming" } } : r)
+                            );
+                            setLoadingModels(prev => prev.filter(m => m !== model));
+                            }
+                        );
+                        break;
+
                     case "R1":
                         data = await sendChatToDeepSeek(input, historyToSend, mode); break;
                     case "Qwen":

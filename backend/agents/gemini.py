@@ -66,3 +66,38 @@ class GeminiAgent():
                 answer="", 
                 extra={"error": repr(e)}
             )
+    
+
+    async def stream_response(self, message: str, history=None):
+        """Stream response using current Gemini SDK"""
+        try:
+            # Format history
+            chat_history = self.format_history(history or [])
+            
+            # Add current message
+            if message:
+                chat_history.append(
+                    types.Content(
+                        role="user",
+                        parts=[types.Part.from_text(text=message)]
+                    )
+                )
+
+            # Stream response
+            response = self.client.models.generate_content_stream(
+                model="gemini-2.5-flash",
+                contents=chat_history,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=2048,
+                )
+            )
+            
+            # Stream each chunk
+            for chunk in response:
+                if hasattr(chunk, 'text') and chunk.text:
+                    yield {"answer": chunk.text}
+                    
+        except Exception as e:
+            print(f"GeminiAgent streaming error: {e}")
+            yield {"error": str(e)}

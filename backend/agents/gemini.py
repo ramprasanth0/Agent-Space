@@ -82,8 +82,6 @@ class GeminiAgent():
                         parts=[types.Part.from_text(text=message)]
                     )
                 )
-            
-            print(f"📤 Sending to Gemini: {len(chat_history)} messages")
 
             # Stream response
             response = self.client.models.generate_content_stream(

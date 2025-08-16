@@ -79,8 +79,8 @@ async def sse_event(data: str):
 
 @app.post("/stream/perplexity")
 async def stream_perplexity(request: ChatRequest):
-    hist = normalize_history(request.history)
-    history_payload = hist
+
+    history_payload = normalize_history(request.history)
     print(history_payload)
     async def event_generator():
         accumulated_answer = ""
@@ -120,13 +120,8 @@ async def stream_perplexity(request: ChatRequest):
 # Streaming endpoint for Gemini
 @app.post("/stream/gemini")
 async def stream_gemini(request: ChatRequest):
-    print(f"📥 Gemini request - Mode: {request.mode}")
-    print(f"📥 Message: {request.message}")
-    print(f"📥 History length: {len(request.history)}")
     
-    hist = normalize_history(request.history)
-    print(f"📥 Normalized history: {hist}")
-    history_payload = hist  
+    history_payload = normalize_history(request.history)
 
     async def event_generator():
         accumulated_answer = ""
@@ -164,8 +159,7 @@ async def stream_gemini(request: ChatRequest):
 
 @app.post("/stream/deepseek")
 async def stream_deepseek(request: ChatRequest):
-    hist = normalize_history(request.history)
-    history_payload = hist
+    history_payload = normalize_history(request.history)
 
     async def event_generator():
         accumulated_answer = ""
@@ -206,8 +200,8 @@ async def stream_deepseek(request: ChatRequest):
 
 @app.post("/stream/qwen")
 async def stream_qwen(request: ChatRequest):
-    hist = normalize_history(request.history)
-    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+    
+    history_payload = normalize_history(request.history)
 
     async def event_generator():
         accumulated_answer = ""

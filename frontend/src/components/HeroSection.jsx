@@ -15,7 +15,7 @@ const sanitizeHistoryForApi = (messages) => {
     return messages.map(msg => {
         let content = '';
         
-        // ✅ FIXED: Handle undefined/null content properly
+        // Handle undefined/null content properly
         if (msg.content === undefined || msg.content === null) {
             console.warn('sanitizeHistoryForApi: message content is undefined/null:', msg);
             content = '';
@@ -33,7 +33,7 @@ const sanitizeHistoryForApi = (messages) => {
             content: content.trim() 
         };
     }).filter(msg => {
-        // ✅ Filter out messages with empty content
+        // Filter out messages with empty content
         const isValid = msg.content && msg.content.trim() !== '' && msg.role;
         if (!isValid) {
             console.warn('Filtering out invalid message:', msg);
@@ -62,6 +62,9 @@ export default function HeroSection({ alertRef }) {
     const [mode, setMode] = useState("one-liner");
     //state var for history of messages for conversation mode
     const [messages, setMessages] = useState([]); // array of { role, content }
+    //state var for streaming process
+    const [isStreaming, setIsStreaming] = useState(false);
+
     //state var for alert message
     // const [alertMsg, setAlertMsg] = useState("");
     //
@@ -81,7 +84,7 @@ export default function HeroSection({ alertRef }) {
         );
     }
     let toShow = null;
-    if (mode === "conversation" && selectedModels.length === 1 && messages.length > 0) {
+    if (mode === "conversation" && selectedModels.length === 1 && messages.length > 0 && !isStreaming) {
         const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
         if (lastAssistant) {
             toShow = [{ provider: selectedModels[0], response: lastAssistant.content }];
@@ -112,8 +115,6 @@ export default function HeroSection({ alertRef }) {
         // Creating a sanitized version of the history specifically for the API call.
         const historyToSend = sanitizeHistoryForApi(currentHistory);
 
-        // ... existing code ...
-
         // Clear previous responses completely
         setResponse([]);  // Clear first
     
@@ -127,6 +128,8 @@ export default function HeroSection({ alertRef }) {
 
         // We'll keep all LLM replies here by provider name (for multi llm replies)
         const replies = {};
+
+        setIsStreaming(true);
 
         // "Fan out" async, each updates itself…
         await Promise.all(selectedModels.map(async (model) => {
@@ -155,6 +158,11 @@ export default function HeroSection({ alertRef }) {
                             () => {
                                 setLoadingModels(prev => prev.filter(m => m !== model));
                                 replies[model] = lastSonarResponse || { answer: "No response" };
+
+                                // Check if all models done streaming
+                                if (loadingModels.length === 1) { // This model is the last one
+                                    setIsStreaming(false);
+                                }
                             },
                             (error) => {
                                 // ... error handling
@@ -185,6 +193,11 @@ export default function HeroSection({ alertRef }) {
                             () => {
                                 setLoadingModels(prev => prev.filter(m => m !== model));
                                 replies[model] = lastGeminiResponse || { answer: "No response received" };
+
+                                // Check if all models done streaming
+                                if (loadingModels.length === 1) { // This model is the last one
+                                    setIsStreaming(false);
+                                }
                             },
                             (error) => {
                                 // ... error handling
@@ -194,65 +207,75 @@ export default function HeroSection({ alertRef }) {
                         break;
 
 
-                        case "R1":
-                            console.log('Streaming from backend:', historyToSend);
+                    case "R1":
+                        console.log('Streaming from backend:', historyToSend);
 
-                            // Track the final structured response for conversation history
-                            let lastDeepseekResponse = null;
-                            
-                            await streamChatToDeepSeek(
-                                input, historyToSend, mode,
-                                (partial) => {
-                                    lastDeepseekResponse = partial;
-                                    
-                                    setResponse(prev =>
-                                        prev.map(r =>
-                                            r.provider === model 
-                                                ? { ...r, response: partial }
-                                                : r
-                                        )
-                                    );
-                                },
-                                () => {
-                                    setLoadingModels(prev => prev.filter(m => m !== model));
-                                    replies[model] = lastDeepseekResponse || { answer: "No response" };
-                                },
-                                (error) => {
-                                    // ... error handling
-                                    replies[model] = { answer: `Error: ${error}` };
+                        // Track the final structured response for conversation history
+                        let lastDeepseekResponse = null;
+                        
+                        await streamChatToDeepSeek(
+                            input, historyToSend, mode,
+                            (partial) => {
+                                lastDeepseekResponse = partial;
+                                
+                                setResponse(prev =>
+                                    prev.map(r =>
+                                        r.provider === model 
+                                            ? { ...r, response: partial }
+                                            : r
+                                    )
+                                );
+                            },
+                            () => {
+                                setLoadingModels(prev => prev.filter(m => m !== model));
+                                replies[model] = lastDeepseekResponse || { answer: "No response" };
+
+                                // Check if all models done streaming
+                                if (loadingModels.length === 1) { // This model is the last one
+                                    setIsStreaming(false);
                                 }
-                            );
-                            break;
+                            },
+                            (error) => {
+                                // ... error handling
+                                replies[model] = { answer: `Error: ${error}` };
+                            }
+                        );
+                        break;
 
-                        case "Qwen":
-                            console.log('Streaming from backend:', historyToSend);
+                    case "Qwen":
+                        console.log('Streaming from backend:', historyToSend);
 
-                            // Track the final structured response for conversation history
-                            let lastQwenResponse = null;
-                            
-                            await streamChatToQwen(
-                                input, historyToSend, mode,
-                                (partial) => {
-                                    lastQwenResponse = partial;
-                                    
-                                    setResponse(prev =>
-                                        prev.map(r =>
-                                            r.provider === model 
-                                                ? { ...r, response: partial }
-                                                : r
-                                        )
-                                    );
-                                },
-                                () => {
-                                    setLoadingModels(prev => prev.filter(m => m !== model));
-                                    replies[model] = lastQwenResponse || { answer: "No response" };
-                                },
-                                (error) => {
-                                    // ... error handling
-                                    replies[model] = { answer: `Error: ${error}` };
+                        // Track the final structured response for conversation history
+                        let lastQwenResponse = null;
+                        
+                        await streamChatToQwen(
+                            input, historyToSend, mode,
+                            (partial) => {
+                                lastQwenResponse = partial;
+                                
+                                setResponse(prev =>
+                                    prev.map(r =>
+                                        r.provider === model 
+                                            ? { ...r, response: partial }
+                                            : r
+                                    )
+                                );
+                            },
+                            () => {
+                                setLoadingModels(prev => prev.filter(m => m !== model));
+                                replies[model] = lastQwenResponse || { answer: "No response" };
+
+                                // Check if all models done streaming
+                                if (loadingModels.length === 1) { // This model is the last one
+                                    setIsStreaming(false);
                                 }
-                            );
-                            break;
+                            },
+                            (error) => {
+                                // ... error handling
+                                replies[model] = { answer: `Error: ${error}` };
+                            }
+                        );
+                        break;
 
                     default:
                         data = { response: "Model not implemented yet." };
@@ -260,24 +283,15 @@ export default function HeroSection({ alertRef }) {
             } catch {
                 data = { response: { answer: "Error: Unable to contact backend." } };
             }
-            // Update just this card's response
-            // replies[model] = data.response || { answer: "No response" };
-            // setResponse(prev =>
-            //     prev.map(r =>
-            //         r.provider === model ? { ...r, response: data.response || { answer: "No response" } } : r
-            //     )
-            // );
-            // Remove the model from loading
-            // setLoadingModels(prev => prev.filter(m => m !== model));
         }));
 
         // Store user + assistant messages in state (for full chat context)
         // Only in conversation mode—with one model
-        // At the end of handleClick, before storing conversation
+
         if (mode === "conversation" && selectedModels.length === 1) {
             const model = selectedModels[0];
             
-            // ✅ FIXED: Ensure we have a valid response before storing
+            // Ensure we have a valid response before storing
             const assistantResponse = replies[model];
             
             if (assistantResponse && (assistantResponse.answer || assistantResponse.sources || assistantResponse.facts)) {

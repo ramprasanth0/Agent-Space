@@ -88,7 +88,7 @@ export default function App() {
       />
 
       <StarBackground starCount={25} />
-      <div className="relative z-30">
+      <div className="relative overflow-hidden z-30">
         <Home toggleTheme={toggleTheme} useSystemTheme={useSystemTheme} mode={mode} />
       </div>
     </div>

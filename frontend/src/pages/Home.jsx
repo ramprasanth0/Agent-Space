@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import HeroSection from "../components/HeroSection"
 import MoodToggle from "../components/MoodToggle"
 import Alert from "../components/Alert"
@@ -6,9 +6,26 @@ import InfoCard from "../components/InfoCard"
 
 export default function Home({ toggleTheme }) {
   const alertRef = useRef();
+  const [hasStartedChat, setHasStartedChat] = useState(false);
+
+  useEffect(() => {
+    if (hasStartedChat) {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+
+      const timer = setTimeout(() => {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasStartedChat]);
   return (
     <div>
-      <header className="relative text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20">
+      {/* <header className="relative text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow mb-6 mt-5 pb-28 pt-20"> */}
+      <header className={`text-5xl text-indigo-200 font-extrabold text-center drop-shadow-glow pb-28 pt-20 transition-all duration-300 
+                        ${hasStartedChat ? 'header-collapsed' : ''}`}>
         <div className="absolute top-6 right-10">
           <MoodToggle toggleTheme={toggleTheme} />
         </div>
@@ -28,9 +45,12 @@ export default function Home({ toggleTheme }) {
         Agent Space
       </h1>
     </header> */}
-      <main className="flex justify-center relative mt-20">
+      <main
+        className={`flex justify-center relative ${hasStartedChat ? 'mt-0' : 'mt-20'}`}
+      >
         <Alert ref={alertRef} />
-        <HeroSection alertRef={alertRef} />
+        <HeroSection alertRef={alertRef} setHasStartedChat={setHasStartedChat} />
+        {/* </div> */}
       </main>
     </div>
   )

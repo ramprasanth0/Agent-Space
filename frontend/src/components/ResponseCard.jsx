@@ -36,7 +36,7 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
               // Show structured content (works for both streaming and final)
               <StructuredContentDisplay content={res.response} />
             ) : null}
-            
+
             {/* Show streaming indicator if still loading but has partial content */}
             {loadingModels.includes(res.provider) && res.response && (
               <div className="flex items-center gap-2 mt-2 text-sm opacity-70">

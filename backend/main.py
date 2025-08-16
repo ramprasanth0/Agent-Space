@@ -81,7 +81,7 @@ async def sse_event(data: str):
 async def stream_perplexity(request: ChatRequest):
     hist = normalize_history(request.history)
     history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
-
+    print(history_payload)
     async def event_generator():
         accumulated_answer = ""
         

@@ -1,7 +1,8 @@
 import React from "react";
-import { useState, useMemo, useRef } from "react"
+import { useState, useMemo, useRef,useEffect } from "react"
 import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, streamChatToPerplexity, streamChatToGemini, streamChatToDeepSeek, streamChatToQwen } from "../api/Agents"
 import InputCard from './InputCard'
+import SubmitButton from "./SubmitButton";
 import ModelSelector from "./ModelSelector";
 import ResponseCard from "./ResponseCard";
 import ConversationToggle from "./ConversationToggle";
@@ -86,6 +87,22 @@ export default function HeroSection({ alertRef }) {
     // const [alertMsg, setAlertMsg] = useState("");
     //
     // const alertRef = useRef();
+
+    const [uiMode, setUIMode] = useState('center'); // "center" | "chat"
+
+    const chatContainerRef = useRef(null);
+    // Scroll to bottom when messages or response change (for streaming)
+     useEffect(() => {
+        if (
+        response.some(r => r.response) ||        // Any non-empty response
+        messages.length > 0 ||                   // For conversation mode
+        loadingModels.length > 0
+        ) {
+        setUIMode('chat');
+        } else {
+        setUIMode('center');
+        }
+    }, [response, messages, loadingModels]);
 
     function handleModeChange(newMode) {
         if (newMode === "conversation" && selectedModels.length !== 1) {
@@ -348,42 +365,61 @@ export default function HeroSection({ alertRef }) {
                 }
     }
 
-
-    return (
-        <div className="bg-primary rounded-3xl max-w-7xl mx-auto shadow-lg flex flex-col items-center z-20 relative">
-            <div className="flex items-center w-full">
-                <ConversationToggle
-                    mode={mode}
-                    setMode={handleModeChange}
-                // setAlertMsg={setAlertMsg}
-                />
-                <ModelSelector
-                    models={models}
-                    selected={selectedModels}
-                    setSelectedModels={setSelectedModels}
-                    mode={mode}
-                    resetMessages={setMessages}
-                />
-            </div>
-            <div className="w-full">
-                <InputCard
-                    input={input}
-                    loading={loadingModels.length > 0}
-                    setInput={setInput}
-                    handleClick={handleClick}
-                />
-            </div>
-            <div className="w-full" style={{ flex: 1, minHeight: 0 }}>
-                <div className="max-h-[18rem] overflow-auto w-full">
-                    <ResponseCard
-                        userQuestion={lastUserQuestion}
-                        response={toShow || response}
-                        loadingModels={loadingModels}
-                    />
-                </div>
-            </div>
+    return(
+    <div
+      className={`flex flex-col w-3xl max-w-3xl mx-auto rounded-3xl bg-primary shadow-lg relative transition-all
+        ${uiMode === 'center' ? 'justify-center' : 'h-[calc(100vh-8rem)]'}`}
+        style={{ maxHeight: '90vh' }}
+    >
+      {/* Chat/response area: only show after a query */}
+      {uiMode === 'chat' && (
+        <div
+          ref={chatContainerRef}
+          className="flex-grow overflow-y-auto min-h-0 p-4 space-y-4"
+        >
+          <ResponseCard
+            userQuestion={lastUserQuestion}
+            response={toShow || response}
+            loadingModels={loadingModels}
+          />
         </div>
-    )
+      )}
+
+      {/* The controls: vertically centered when idle, pinned bottom when chatting */}
+        {/* Controls area */}
+  <div className="flex flex-col gap-2 flex-none px-4 py-3 border-t border-slate-800">
+    <div className="flex items-center w-full gap-4">
+      <div className="flex-none">
+        <ConversationToggle
+          mode={mode}
+          setMode={handleModeChange}
+        />
+      </div>
+      <div className="flex-none">
+        <ModelSelector
+          models={models}
+          selected={selectedModels}
+          setSelectedModels={setSelectedModels}
+          mode={mode}
+          resetMessages={setMessages}
+        />
+      </div>
+      <div className="flex-grow">
+        <SubmitButton
+          loading={loadingModels.length > 0}
+          disabled={!input.trim()}
+          onClick={handleClick}
+        />
+      </div>
+      </div>
+        <InputCard
+          input={input}
+          setInput={setInput}
+          handleClick={handleClick}
+        />
+    </div>
+    </div>
+  );
 }
 
 

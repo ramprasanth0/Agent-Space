@@ -245,29 +245,3 @@
 .streaming-text {
   animation: fadeIn 0.3s ease-in;
 }
-
-.response-grid {
-  display: grid;
-  gap: 1rem;
-  padding: 1.5rem;
-  /* Prevent width changes during content updates */
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  width: 100%;
-}
-
-.response-card {
-  /* Fixed constraints to prevent width changes */
-  min-width: 0; /* Allow text truncation */
-  max-width: 100%;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  /* Prevent horizontal scrolling */
-  overflow-x: hidden;
-}
-
-.response-content {
-  /* Stable text container */
-  width: 100%;
-  min-height: 100px; /* Prevent height collapse */
-  word-break: break-word;
-}

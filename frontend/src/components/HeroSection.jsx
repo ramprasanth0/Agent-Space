@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useRef } from "react"
+import { useState, useMemo, useRef } from "react"
 import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, streamChatToPerplexity, streamChatToGemini, streamChatToDeepSeek, streamChatToQwen } from "../api/Agents"
 import InputCard from './InputCard'
 import ModelSelector from "./ModelSelector";
@@ -11,6 +11,23 @@ import ConversationToggle from "./ConversationToggle";
  * Sanitizes the chat history to ensure it's in a simple, API-friendly format.
  * The backend expects the 'content' of every message to be a string.
  */
+
+const useDebounced = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  
+  return debouncedValue;
+};
+
 const sanitizeHistoryForApi = (messages) => {
     return messages.map(msg => {
         let content = '';
@@ -176,29 +193,47 @@ export default function HeroSection({ alertRef }) {
                         
                         // Track the final structured response for conversation history
                         let lastGeminiResponse = null;
+                        let accumulatedTokens = ''; // ✅ Accumulate tokens locally
+                        let updateTimer = null;
                         
                         await streamChatToGemini(
                             input, historyToSend, mode,
                             (partial) => {
                                 lastGeminiResponse = partial;
                                 
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                        r.provider === model 
-                                            ? { ...r, response: partial }
-                                            : r
-                                    )
-                                );
-                            },
-                            () => {
-                                setLoadingModels(prev => prev.filter(m => m !== model));
-                                replies[model] = lastGeminiResponse || { answer: "No response received" };
-
-                                // Check if all models done streaming
-                                if (loadingModels.length === 1) { // This model is the last one
-                                    setIsStreaming(false);
+                                // For streaming tokens, accumulate locally and update less frequently
+                                if (partial.answer && !partial.explanation) {
+                                    accumulatedTokens += partial.answer;
+                                    
+                                    // Update UI after every syncronous phase instead of every token
+                                    if (!updateTimer) {
+                                        updateTimer = setTimeout(() => {
+                                            setResponse(prev =>
+                                                prev.map(r =>
+                                                    r.provider === model 
+                                                        ? { ...r, response: { answer: accumulatedTokens } }
+                                                        : r
+                                                )
+                                            );
+                                            updateTimer = null;
+                                        }, 0);
+                                    }
+                                } else {
+                                    // ✅ Immediate update for final structured response
+                                    setResponse(prev =>
+                                        prev.map(r =>
+                                            r.provider === model 
+                                                ? { ...r, response: partial }
+                                                : r
+                                        )
+                                    );
                                 }
                             },
+                            () => {
+                                    if (updateTimer) clearTimeout(updateTimer);
+                                    setLoadingModels(prev => prev.filter(m => m !== model));
+                                    replies[model] = lastGeminiResponse || { answer: "No response received" };
+                                },
                             (error) => {
                                 // ... error handling
                                 replies[model] = { answer: `Error: ${error}` };

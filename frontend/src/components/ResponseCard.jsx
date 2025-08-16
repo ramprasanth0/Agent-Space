@@ -10,38 +10,6 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
           : response.length === 4 ? "grid-cols-4"
             : "grid-cols-1";
 
-  // return (
-  //   <div
-  //     role="grid"
-  //     data-testid="response-card-grid"
-  //     className={`grid ${gridColsClass} gap-4 p-6`}
-  //   >
-  //     {response.map((res, idx) => (
-  //       <div
-  //         key={res.provider || idx}
-  //         className="bg-[var(--color-response_card_bg)] rounded-3xl m-2 p-3"
-  //       >
-  //         <div className="font-bold text-[var(--color-tab_unselected)] pl-2">{res.provider}</div>
-  //         <div className="rounded-xl overflow-x-auto font-bold pl-2 text-[var(--color-response_card_content)]">{userQuestion}</div>
-
-  //         {loadingModels.includes(res.provider) || res.response === null ? (
-  //           <div className="space-y-2 p-2 w-full">
-  //             <div className="skeleton bg-white h-4 w-3/4"></div>
-  //             <div className="skeleton bg-white h-6 w-full"></div>
-  //             <div className="skeleton bg-white h-6 w-full"></div>
-  //             {/* <div className="skeleton bg-white h-6 w-full"></div> */}
-  //           </div>
-  //         ) : (
-  //           // <div className="m-2 mt-4 rounded-xl overflow-x-auto p-2 text-[var(--color-response_card_content)]">{res.response.answer}</div>
-  //           <StructuredContentDisplay content={res.response} />
-  //         )}
-
-  //         {/* <div className="m-2">{res.response}</div> */}
-  //       </div>
-  //     ))}
-  //   </div>
-  // );
-
   return (
     <div className={`grid ${gridColsClass} gap-4 p-6`}>
       {response.map((res, idx) => (

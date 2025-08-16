@@ -245,3 +245,22 @@
 .streaming-text {
   animation: fadeIn 0.3s ease-in;
 }
+
+/* Add to your CSS file or styled-components */
+.response-content {
+  min-height: 100px; /* Prevent height jumping */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap; /* Preserve formatting */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* Consistent font */
+  line-height: 1.5; /* Consistent line spacing */
+  padding: 1rem;
+  transition: none; /* Remove any smooth transitions during streaming */
+}
+
+.response-card {
+  min-height: 200px; /* Set minimum card height */
+  max-height: 400px; /* Set maximum height */
+  overflow-y: auto; /* Allow scrolling if content exceeds max height */
+  contain: layout; /* CSS containment to prevent layout shifts */
+}

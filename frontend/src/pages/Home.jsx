@@ -1,11 +1,10 @@
-import { useRef, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import HeroSection from "../components/HeroSection"
 import MoodToggle from "../components/MoodToggle"
-import Alert from "../components/Alert"
+
 import InfoCard from "../components/InfoCard"
 
 export default function Home({ toggleTheme }) {
-  const alertRef = useRef();
   const [hasStartedChat, setHasStartedChat] = useState(false);
 
   useEffect(() => {
@@ -48,8 +47,7 @@ export default function Home({ toggleTheme }) {
       <main
         className={`flex justify-center relative ${hasStartedChat ? 'mt-0' : 'mt-20'}`}
       >
-        <Alert ref={alertRef} />
-        <HeroSection alertRef={alertRef} setHasStartedChat={setHasStartedChat} />
+        <HeroSection setHasStartedChat={setHasStartedChat} />
         {/* </div> */}
       </main>
     </div>

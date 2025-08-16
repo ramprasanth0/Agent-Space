@@ -40,7 +40,7 @@ const Alert = forwardRef(function Alert(
         transition-opacity duration-500
         ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       style={{
-        top: "-2.5rem",
+        top: "-4.5rem",
         transitionProperty: "opacity",
         transitionDuration: `${fadeDuration}ms`,
         width: "fit-content",

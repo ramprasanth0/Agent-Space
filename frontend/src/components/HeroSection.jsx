@@ -6,6 +6,7 @@ import SubmitButton from "./SubmitButton";
 import ModelSelector from "./ModelSelector";
 import ResponseCard from "./ResponseCard";
 import ConversationToggle from "./ConversationToggle";
+import Alert from "../components/Alert"
 // import Alert from "./Alert";
 
 /**
@@ -60,8 +61,15 @@ const sanitizeHistoryForApi = (messages) => {
     });
 };
 
-export default function HeroSection({ alertRef, setHasStartedChat }) {
+export default function HeroSection({ setHasStartedChat }) {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
+
+    const alertRef = useRef();
+    useEffect(() => {
+        if (alertRef.current) {
+            alertRef.current.show("Welcome! One-liner mode enabled");
+        }
+    }, []);
 
     // state var for model data from user
     const [input, setInput] = useState('');
@@ -362,8 +370,8 @@ export default function HeroSection({ alertRef, setHasStartedChat }) {
             ${uiMode === 'center' ? 'justify-center' : 'h-[calc(100vh-1rem)]'}
             w-full
             ${mode === 'one-liner' && selectedModels.length > 1
-                    ? 'max-w-7xl '    // Larger max width + horizontal padding
-                    : 'max-w-3xl '    // Smaller max width + a bit more padding
+                    ? 'max-w-7xl '
+                    : 'max-w-2xl '
                 }
             `}
         >
@@ -380,6 +388,8 @@ export default function HeroSection({ alertRef, setHasStartedChat }) {
                     />
                 </div>
             )}
+
+            <Alert ref={alertRef} />
 
             {/* The controls: vertically centered when idle, pinned bottom when chatting */}
             {/* Controls area */}

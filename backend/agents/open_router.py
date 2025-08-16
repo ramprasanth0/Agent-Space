@@ -95,8 +95,8 @@ class OpenRouterAgent:
 
         # Build conversation history
         chat_history = history or []
-        if message:
-            chat_history.append({"role": "user", "content": message})
+        # if message:
+        #     chat_history.append({"role": "user", "content": message})
 
         endpoint = "https://openrouter.ai/api/v1/chat/completions"
         headers = {

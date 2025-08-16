@@ -80,7 +80,7 @@ async def sse_event(data: str):
 @app.post("/stream/perplexity")
 async def stream_perplexity(request: ChatRequest):
     hist = normalize_history(request.history)
-    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+    history_payload = hist
     print(history_payload)
     async def event_generator():
         accumulated_answer = ""
@@ -120,17 +120,21 @@ async def stream_perplexity(request: ChatRequest):
 # Streaming endpoint for Gemini
 @app.post("/stream/gemini")
 async def stream_gemini(request: ChatRequest):
+    print(f"📥 Gemini request - Mode: {request.mode}")
+    print(f"📥 Message: {request.message}")
+    print(f"📥 History length: {len(request.history)}")
+    
     hist = normalize_history(request.history)
-    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+    print(f"📥 Normalized history: {hist}")
+    history_payload = hist  
 
     async def event_generator():
         accumulated_answer = ""
         
         try:
-            # Stream tokens
             async for partial in gemini_agent.stream_response(
-                message=request.message,
-                history=history_payload
+                message=request.message,  # Agent will add this to history
+                history=history_payload   # Just the conversation history
             ):
                 token = partial.get("answer", "")
                 accumulated_answer += token
@@ -161,7 +165,7 @@ async def stream_gemini(request: ChatRequest):
 @app.post("/stream/deepseek")
 async def stream_deepseek(request: ChatRequest):
     hist = normalize_history(request.history)
-    history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
+    history_payload = hist
 
     async def event_generator():
         accumulated_answer = ""
@@ -201,7 +205,7 @@ async def stream_deepseek(request: ChatRequest):
 
 
 @app.post("/stream/qwen")
-async def stream_deepseek(request: ChatRequest):
+async def stream_qwen(request: ChatRequest):
     hist = normalize_history(request.history)
     history_payload = [{"role": "user", "content": request.message}] if request.mode == "one-liner" else hist
 

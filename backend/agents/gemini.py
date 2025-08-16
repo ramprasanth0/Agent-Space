@@ -82,14 +82,16 @@ class GeminiAgent():
                         parts=[types.Part.from_text(text=message)]
                     )
                 )
+            
+            print(f"📤 Sending to Gemini: {len(chat_history)} messages")
 
             # Stream response
             response = self.client.models.generate_content_stream(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=chat_history,
                 config=types.GenerateContentConfig(
-                    temperature=0.7,
-                    max_output_tokens=2048,
+                    temperature=0.7
+                    # max_output_tokens=2048,
                 )
             )
             

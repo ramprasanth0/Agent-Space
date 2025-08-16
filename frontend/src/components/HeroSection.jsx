@@ -13,14 +13,36 @@ import ConversationToggle from "./ConversationToggle";
  */
 const sanitizeHistoryForApi = (messages) => {
     return messages.map(msg => {
-        // If the content is an object (a structured response), extract just the 'answer' string.
-        if (typeof msg.content === 'object' && msg.content !== null) {
-            return { role: msg.role, content: msg.content.answer || '' };
+        let content = '';
+        
+        // ✅ FIXED: Handle undefined/null content properly
+        if (msg.content === undefined || msg.content === null) {
+            console.warn('sanitizeHistoryForApi: message content is undefined/null:', msg);
+            content = '';
+        } else if (typeof msg.content === 'object' && msg.content !== null) {
+            content = msg.content.answer || '';
+        } else if (typeof msg.content === 'string') {
+            content = msg.content;
+        } else {
+            console.warn('sanitizeHistoryForApi: unexpected content type:', typeof msg.content, msg.content);
+            content = String(msg.content);
         }
-        // Otherwise, the content is already a string (from the user).
-        return msg;
+        
+        return { 
+            role: msg.role, 
+            content: content.trim() 
+        };
+    }).filter(msg => {
+        // ✅ Filter out messages with empty content
+        const isValid = msg.content && msg.content.trim() !== '' && msg.role;
+        if (!isValid) {
+            console.warn('Filtering out invalid message:', msg);
+        }
+        return isValid;
     });
 };
+
+
 
 export default function HeroSection({ alertRef }) {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
@@ -113,193 +135,124 @@ export default function HeroSection({ alertRef }) {
                 switch (model) {
                     case "Sonar":
                         console.log('Streaming from backend:', historyToSend);
-                        
+
                         // Track the final structured response for conversation history
-                        let finalSonarResponse = null;
+                        let lastSonarResponse = null;
                         
                         await streamChatToPerplexity(
-                            input,
-                            historyToSend,
-                            mode,
+                            input, historyToSend, mode,
                             (partial) => {
-                                // Update the response with whatever we receive
+                                lastSonarResponse = partial;
+                                
                                 setResponse(prev =>
                                     prev.map(r =>
-                                    r.provider === model 
-                                        ? { ...r, response: partial }
-                                        : r
+                                        r.provider === model 
+                                            ? { ...r, response: partial }
+                                            : r
                                     )
                                 );
-                                
-                                // If this looks like the final structured response, save it
-                                if (partial.sources || partial.facts || partial.explanation) {
-                                    finalSonarResponse = partial;
-                                }
                             },
                             () => {
-                                // Stream complete - remove loading
                                 setLoadingModels(prev => prev.filter(m => m !== model));
-                                
-                                // Store the final structured response for conversation history
-                                if (finalSonarResponse) {
-                                    replies[model] = finalSonarResponse;
-                                }
+                                replies[model] = lastSonarResponse || { answer: "No response" };
                             },
                             (error) => {
-                                console.error('Streaming error:', error);
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                    r.provider === model
-                                        ? { ...r, response: { answer: `Error: ${error}` } }
-                                        : r
-                                    )
-                                );
-                                setLoadingModels(prev => prev.filter(m => m !== model));
+                                // ... error handling
                                 replies[model] = { answer: `Error: ${error}` };
                             }
                         );
                         break;
+
                     case "Gemini":
                         console.log('Streaming from backend:', historyToSend);
                         
                         // Track the final structured response for conversation history
-                        let finalGeminiResponse = null;
+                        let lastGeminiResponse = null;
+                        
                         await streamChatToGemini(
-                            input,
-                            historyToSend,
-                            mode,
+                            input, historyToSend, mode,
                             (partial) => {
-                                // Update the response with whatever we receive
+                                lastGeminiResponse = partial;
+                                
                                 setResponse(prev =>
                                     prev.map(r =>
-                                    r.provider === model 
-                                        ? { ...r, response: partial }
-                                        : r
+                                        r.provider === model 
+                                            ? { ...r, response: partial }
+                                            : r
                                     )
                                 );
-                                
-                                // If this looks like the final structured response, save it
-                                if (partial.sources || partial.facts || partial.explanation) {
-                                    finalGeminiResponse = partial;
-                                }
                             },
                             () => {
-                                // Stream complete - remove loading
                                 setLoadingModels(prev => prev.filter(m => m !== model));
-                                
-                                // Store the final structured response for conversation history
-                                if (finalGeminiResponse) {
-                                    replies[model] = finalGeminiResponse;
-                                }
+                                replies[model] = lastGeminiResponse || { answer: "No response received" };
                             },
                             (error) => {
-                                console.error('Streaming error:', error);
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                    r.provider === model
-                                        ? { ...r, response: { answer: `Error: ${error}` } }
-                                        : r
-                                    )
-                                );
-                                setLoadingModels(prev => prev.filter(m => m !== model));
+                                // ... error handling
                                 replies[model] = { answer: `Error: ${error}` };
                             }
                         );
                         break;
 
-                    case "R1":
-                        console.log('Streaming from backend:', historyToSend);
-                        // Track the final structured response for conversation history
-                        let finalDeepseekResponse = null;
-                        await streamChatToDeepSeek(
-                            input,
-                            historyToSend,
-                            mode,
-                            (partial) => {
-                                // Update the response with whatever we receive
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                    r.provider === model 
-                                        ? { ...r, response: partial }
-                                        : r
-                                    )
-                                );
-                                
-                                // If this looks like the final structured response, save it
-                                if (partial.sources || partial.facts || partial.explanation) {
-                                    finalDeepseekResponse = partial;
-                                }
-                            },
-                            () => {
-                                // Stream complete - remove loading
-                                setLoadingModels(prev => prev.filter(m => m !== model));
-                                
-                                // Store the final structured response for conversation history
-                                if (finalDeepseekResponse) {
-                                    replies[model] = finalDeepseekResponse;
-                                }
-                            },
-                            (error) => {
-                                console.error('Streaming error:', error);
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                    r.provider === model
-                                        ? { ...r, response: { answer: `Error: ${error}` } }
-                                        : r
-                                    )
-                                );
-                                setLoadingModels(prev => prev.filter(m => m !== model));
-                                replies[model] = { answer: `Error: ${error}` };
-                            }
-                        );
-                        break;
 
-                    case "Qwen":
-                        console.log('Streaming from backend:', historyToSend);
-                        // Track the final structured response for conversation history
-                        let finalQwenResponse = null;
-                        await streamChatToQwen(
-                            input,
-                            historyToSend,
-                            mode,
-                            (partial) => {
-                                // Update the response with whatever we receive
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                    r.provider === model 
-                                        ? { ...r, response: partial }
-                                        : r
-                                    )
-                                );
-                                
-                                // If this looks like the final structured response, save it
-                                if (partial.sources || partial.facts || partial.explanation) {
-                                    finalQwenResponse = partial;
+                        case "R1":
+                            console.log('Streaming from backend:', historyToSend);
+
+                            // Track the final structured response for conversation history
+                            let lastDeepseekResponse = null;
+                            
+                            await streamChatToDeepSeek(
+                                input, historyToSend, mode,
+                                (partial) => {
+                                    lastDeepseekResponse = partial;
+                                    
+                                    setResponse(prev =>
+                                        prev.map(r =>
+                                            r.provider === model 
+                                                ? { ...r, response: partial }
+                                                : r
+                                        )
+                                    );
+                                },
+                                () => {
+                                    setLoadingModels(prev => prev.filter(m => m !== model));
+                                    replies[model] = lastDeepseekResponse || { answer: "No response" };
+                                },
+                                (error) => {
+                                    // ... error handling
+                                    replies[model] = { answer: `Error: ${error}` };
                                 }
-                            },
-                            () => {
-                                // Stream complete - remove loading
-                                setLoadingModels(prev => prev.filter(m => m !== model));
-                                
-                                // Store the final structured response for conversation history
-                                if (finalQwenResponse) {
-                                    replies[model] = finalQwenResponse;
+                            );
+                            break;
+
+                        case "Qwen":
+                            console.log('Streaming from backend:', historyToSend);
+
+                            // Track the final structured response for conversation history
+                            let lastQwenResponse = null;
+                            
+                            await streamChatToQwen(
+                                input, historyToSend, mode,
+                                (partial) => {
+                                    lastQwenResponse = partial;
+                                    
+                                    setResponse(prev =>
+                                        prev.map(r =>
+                                            r.provider === model 
+                                                ? { ...r, response: partial }
+                                                : r
+                                        )
+                                    );
+                                },
+                                () => {
+                                    setLoadingModels(prev => prev.filter(m => m !== model));
+                                    replies[model] = lastQwenResponse || { answer: "No response" };
+                                },
+                                (error) => {
+                                    // ... error handling
+                                    replies[model] = { answer: `Error: ${error}` };
                                 }
-                            },
-                            (error) => {
-                                console.error('Streaming error:', error);
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                    r.provider === model
-                                        ? { ...r, response: { answer: `Error: ${error}` } }
-                                        : r
-                                    )
-                                );
-                                setLoadingModels(prev => prev.filter(m => m !== model));
-                                replies[model] = { answer: `Error: ${error}` };
-                            }
-                        );
-                        break;
+                            );
+                            break;
 
                     default:
                         data = { response: "Model not implemented yet." };
@@ -320,15 +273,30 @@ export default function HeroSection({ alertRef }) {
 
         // Store user + assistant messages in state (for full chat context)
         // Only in conversation mode—with one model
+        // At the end of handleClick, before storing conversation
         if (mode === "conversation" && selectedModels.length === 1) {
             const model = selectedModels[0];
-            setMessages([
-                ...currentHistory,
-                { role: "assistant", content: replies[model] }
-            ]);
-        } else if (mode === "one-liner") {
-            setMessages([]); // Or keep last turn if desired for one-liner display
-        }
+            
+            // ✅ FIXED: Ensure we have a valid response before storing
+            const assistantResponse = replies[model];
+            
+            if (assistantResponse && (assistantResponse.answer || assistantResponse.sources || assistantResponse.facts)) {
+                setMessages([
+                    ...messages,
+                    { role: "user", content: input },
+                    { role: "assistant", content: assistantResponse }
+                ]);
+            } else {
+                console.error(`No valid response from ${model}:`, assistantResponse);
+                // Store user message only, skip assistant response
+                setMessages([
+                    ...messages,
+                    { role: "user", content: input }
+                ]);
+            }
+        }else if (mode === "one-liner") {
+                    setMessages([]); // Or keep last turn if desired for one-liner display
+                }
     }
 
 

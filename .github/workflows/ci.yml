@@ -1,0 +1,36 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        uses: ndeloof/install-compose-action@v1.3.1
+
+      - name: Build containers
+        run: docker compose build
+
+      - name: Start containers
+        run: docker compose up -d
+
+      # - name: Backend tests (FastAPI)
+      #   run: docker compose exec backend pytest  # Commented out for now
+
+      # - name: Frontend tests (Vite/React)
+      #   run: docker compose exec frontend npm test  # Commented out for now
+
+      - name: Stop containers
+        run: docker compose down

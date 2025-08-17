@@ -279,8 +279,6 @@
   /* CSS containment to prevent layout shifts */
 }
 
-
-
 .header-collapsed {
   height: 0;
   margin: 0;

@@ -365,65 +365,81 @@ export default function HeroSection({ setHasStartedChat }) {
     }
 
     return (
-        <div
-            className={`flex flex-col mx-auto rounded-3xl bg-primary shadow-lg relative transition-all
-            ${uiMode === 'center' ? 'justify-center' : 'h-[calc(100vh-1rem)]'}
-            w-full
-            ${mode === 'one-liner' && selectedModels.length > 1
-                    ? 'max-w-7xl '
-                    : 'max-w-2xl '
-                }
-            `}
-        >
-            {/* Chat/response area: only show after a query */}
-            {uiMode === 'chat' && (
+        <>
+            {uiMode === 'center' ? (
+                // Before chat starts: only show input & controls, centered vertically
+                <div className="flex flex-col w-2xl mx-auto justify-center">
+                    <div className="bg-primary rounded-3xl shadow-lg w-full">
+                        <div className="flex items-center w-full">
+                            <ConversationToggle mode={mode} setMode={handleModeChange} />
+                            <ModelSelector
+                                models={models}
+                                selected={selectedModels}
+                                setSelectedModels={setSelectedModels}
+                                mode={mode}
+                                resetMessages={setMessages}
+                            />
+                            <div className="flex-grow">
+                                <SubmitButton
+                                    loading={loadingModels.length > 0}
+                                    disabled={!input.trim()}
+                                    onClick={handleClick}
+                                />
+                            </div>
+                        </div>
+                        <InputCard input={input} setInput={setInput} handleClick={handleClick} />
+                    </div>
+                </div>
+            ) : (
+                // After chat starts: full container with response and controls
                 <div
-                    ref={chatContainerRef}
-                    className="flex-grow overflow-y-auto min-h-0"
+                    className={`
+          flex flex-col mx-auto rounded-3xl shadow-lg relative bg-primary/50 transition-all
+          h-[calc(100vh-1rem)] w-full
+          ${mode === 'one-liner' && selectedModels.length > 1 ? 'max-w-7xl' : 'max-w-2xl'}
+        `}
                 >
-                    <ResponseCard
-                        userQuestion={lastUserQuestion}
-                        response={toShow || response}
-                        loadingModels={loadingModels}
-                    />
+                    <div
+                        ref={chatContainerRef}
+                        className={`
+            flex-grow overflow-y-auto min-h-0 w-full mx-auto
+            ${mode === 'one-liner' && selectedModels.length > 1 ? 'max-w-7xl' : 'max-w-2xl'}
+          `}
+                    >
+                        <ResponseCard
+                            userQuestion={lastUserQuestion}
+                            response={toShow || response}
+                            loadingModels={loadingModels}
+                        />
+                    </div>
+
+                    <Alert ref={alertRef} />
+
+                    <div className="flex flex-col flex-none w-full max-w-2xl mx-auto items-center bg-primary rounded-3xl shadow-lg">
+                        <div className="flex items-center w-full">
+                            <ConversationToggle mode={mode} setMode={handleModeChange} />
+                            <ModelSelector
+                                models={models}
+                                selected={selectedModels}
+                                setSelectedModels={setSelectedModels}
+                                mode={mode}
+                                resetMessages={setMessages}
+                            />
+                            <div className="flex-grow">
+                                <SubmitButton
+                                    loading={loadingModels.length > 0}
+                                    disabled={!input.trim()}
+                                    onClick={handleClick}
+                                />
+                            </div>
+                        </div>
+                        <InputCard input={input} setInput={setInput} handleClick={handleClick} />
+                    </div>
                 </div>
             )}
-
-            <Alert ref={alertRef} />
-
-            {/* The controls: vertically centered when idle, pinned bottom when chatting */}
-            {/* Controls area */}
-            <div className="flex flex-col flex-none">
-                <div className="flex items-center w-full">
-                    <div className="flex-none">
-                        <ConversationToggle
-                            mode={mode}
-                            setMode={handleModeChange}
-                        />
-                    </div>
-                    <div className="flex-none">
-                        <ModelSelector
-                            models={models}
-                            selected={selectedModels}
-                            setSelectedModels={setSelectedModels}
-                            mode={mode}
-                            resetMessages={setMessages}
-                        />
-                    </div>
-                    <div className="flex-grow">
-                        <SubmitButton
-                            loading={loadingModels.length > 0}
-                            disabled={!input.trim()}
-                            onClick={handleClick}
-                        />
-                    </div>
-                </div>
-                <InputCard
-                    input={input}
-                    setInput={setInput}
-                    handleClick={handleClick}
-                />
-            </div>
-        </div>
+        </>
     );
+
+
+
 }

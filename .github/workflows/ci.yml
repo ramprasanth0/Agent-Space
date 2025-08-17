@@ -23,6 +23,12 @@ jobs:
       - name: Build containers
         run: docker compose build
 
+      - name: Create .env file for CI from secrets
+        run: |
+          echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" > .env
+          echo "PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }}" >> .env
+          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env
+
       - name: Start containers
         run: docker compose up -d
 

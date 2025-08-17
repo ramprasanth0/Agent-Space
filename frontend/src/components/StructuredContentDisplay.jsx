@@ -4,7 +4,7 @@ export default function StructuredContentDisplay({ content }) {
   if (!content) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-[var(--color-response_card_content)]">
       {/* Answer with proper markdown rendering */}
       <div className="prose prose-sm max-w-none prose-invert">
         {/* <div className={`prose prose-sm max-w-none prose-invert ${isStreaming ? 'streaming-text' : ''}`}> */}

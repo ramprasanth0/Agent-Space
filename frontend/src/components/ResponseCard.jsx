@@ -31,6 +31,8 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
                 <div className="skeleton bg-white h-4 w-3/4"></div>
                 <div className="skeleton bg-white h-6 w-full"></div>
                 <div className="skeleton bg-white h-6 w-full"></div>
+                <div className="skeleton bg-white h-6 w-full"></div>
+                <div className="skeleton bg-white h-6 w-full"></div>
               </div>
             ) : res.response ? (
               // Show structured content (works for both streaming and final)

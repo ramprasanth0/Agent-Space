@@ -1,6 +1,6 @@
 import React from "react";
 
-import deepSeek from '../assets/deepSeek.svg';
+import deepSeek from '../assets/deepseek.svg';
 import gemini from '../assets/gemini.svg';
 import perplexity from '../assets/perplexity.svg';
 import qwen from '../assets/qwen.svg';

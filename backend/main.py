@@ -7,11 +7,11 @@ from typing import List,Literal
 import asyncio
 import json
 
-from backend.schema import LLMStructuredOutput
-from backend.agents.perplexity import PerplexityAgent
-from backend.agents.gemini import GeminiAgent
-from backend.agents.open_router import OpenRouterAgent
-from backend.agents.multi_agent_orchestrator import MultiAgentOrchestrator
+from schema import LLMStructuredOutput
+from agents.perplexity import PerplexityAgent
+from agents.gemini import GeminiAgent
+from agents.open_router import OpenRouterAgent
+# from agents.multi_agent_orchestrator import MultiAgentOrchestrator
 
 app = FastAPI()
 

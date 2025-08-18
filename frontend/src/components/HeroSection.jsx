@@ -1,6 +1,6 @@
 import React from "react";
-import { useState, useMemo, useRef, useEffect } from "react"
-import { sendChatToPerplexity, sendChatToGemini, sendChatToDeepSeek, sendChatToQwen, streamChatToPerplexity, streamChatToGemini, streamChatToDeepSeek, streamChatToQwen } from "../api/Agents"
+import { useState, useRef, useEffect } from "react"
+import { streamChatToPerplexity, streamChatToGemini, streamChatToDeepSeek, streamChatToQwen } from "../api/Agents"
 import InputCard from './InputCard'
 import SubmitButton from "./SubmitButton";
 import ModelSelector from "./ModelSelector";

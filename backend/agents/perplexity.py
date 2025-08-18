@@ -11,21 +11,7 @@ load_dotenv()
 
 class PerplexityAgent(BaseAgentModel):
 
-    #function to format history for respective LLM
-    # def format_history(self,history):
-    #     formatted = []
-    #     for msg in history:
-    #         if hasattr(msg, "dict"):
-    #             formatted.append(msg.dict())
-    #         elif isinstance(msg, dict):
-    #             formatted.append(msg)
-    #         else:
-    #             # Defensive: convert Message-like objects (if accidentally received as a string, raise)
-    #             raise ValueError(f"Invalid message type in history: {type(msg)} - {msg!r}")
-    #     return formatted
-
-
-    async def get_response(self, message:str = None, history = None):
+    async def get_response(self, message:str ="", history = None):
         # print(history)
         api_key = os.environ.get("PERPLEXITY_API_KEY")
         chat_history = history or [{"role": "user", "content": message}]

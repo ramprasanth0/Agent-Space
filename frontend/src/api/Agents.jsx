@@ -1,73 +1,6 @@
 
 
 //API connectors for agents
-export async function sendChatToPerplexity(query, historyToSend, mode) {
-    const payload = {
-        message: query,
-        history: historyToSend,
-        mode: mode
-    };
-    console.log("Sending payload to backend:", JSON.stringify(payload, null, 2));
-    const result = await fetch('/chat/perplexity', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query, history: historyToSend, mode: mode }),
-    })
-
-    const data = await result.json();
-    console.log(data);
-    return data
-}
-
-export async function sendChatToGemini(query, historyToSend, mode) {
-    const result = await fetch('/chat/gemini', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query, history: historyToSend, mode: mode }),
-    })
-
-    const data = await result.json();
-    console.log(data);
-    return data
-}
-
-export async function sendChatToDeepSeek(query, historyToSend, mode) {
-    const result = await fetch('/chat/deepseek', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query, history: historyToSend, mode: mode }),
-    })
-
-    const data = await result.json();
-    console.log(data);
-    return data
-}
-
-export async function sendChatToQwen(query, historyToSend, mode) {
-    const result = await fetch('/chat/qwen', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query, history: historyToSend, mode: mode }),
-    })
-
-    const data = await result.json();
-    console.log(data);
-    return data
-}
-
-export async function sendChatToMultiAgent(query, agents) {
-    const result = await fetch('/chat/multi_agent', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query, agents: agents }),
-    })
-
-    const data = await result.json();
-    console.log(data);
-    return data
-}
-
-
 
 /////////////////////////////     Streaming API functions  ////////////////////////
 
@@ -96,7 +29,7 @@ export async function streamChatToPerplexity(message, history, mode, onPartial, 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
-          
+
           if (data === '[DONE]') {
             onComplete();
             return;
@@ -104,7 +37,7 @@ export async function streamChatToPerplexity(message, history, mode, onPartial, 
 
           try {
             const parsed = JSON.parse(data);
-            
+
             if (parsed.structured) {
               // Final structured response
               onPartial(parsed.structured);
@@ -156,7 +89,7 @@ export async function streamChatToGemini(message, history, mode, onPartial, onCo
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6).trim();
-          
+
           if (data === '[DONE]') {
             onComplete();
             return;
@@ -164,7 +97,7 @@ export async function streamChatToGemini(message, history, mode, onPartial, onCo
 
           try {
             const parsed = JSON.parse(data);
-            
+
             if (parsed.sources || parsed.facts || parsed.explanation) {
               onPartial(parsed); // Final structured response
             } else if (parsed.answer !== undefined) {
@@ -214,7 +147,7 @@ export async function streamChatToDeepSeek(message, history, mode, onPartial, on
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6).trim();
-          
+
           if (data === '[DONE]') {
             onComplete();
             return;
@@ -222,7 +155,7 @@ export async function streamChatToDeepSeek(message, history, mode, onPartial, on
 
           try {
             const parsed = JSON.parse(data);
-            
+
             if (parsed.sources || parsed.facts || parsed.explanation) {
               // Final structured response
               onPartial(parsed);
@@ -273,7 +206,7 @@ export async function streamChatToQwen(message, history, mode, onPartial, onComp
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6).trim();
-          
+
           if (data === '[DONE]') {
             onComplete();
             return;
@@ -281,7 +214,7 @@ export async function streamChatToQwen(message, history, mode, onPartial, onComp
 
           try {
             const parsed = JSON.parse(data);
-            
+
             if (parsed.sources || parsed.facts || parsed.explanation) {
               // Final structured response
               onPartial(parsed);

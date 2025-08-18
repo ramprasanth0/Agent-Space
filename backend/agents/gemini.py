@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 # from .base import BaseAgentModel
-from ..schema import LLMStructuredOutput
+from ..schema import LLMStructuredOutput,KeyValuePair
 
 
 #loading environment variable
@@ -34,7 +34,7 @@ class GeminiAgent():
         return formatted
 
 
-    def get_response(self, message:str = None, history = None) -> LLMStructuredOutput:
+    def get_response(self, message:str = "", history = None) -> LLMStructuredOutput:
 
         # Compose the chat to Gemini - all previous plus new user message at end
         try:

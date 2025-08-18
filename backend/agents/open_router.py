@@ -9,7 +9,7 @@ from ..schema import LLMStructuredOutput,KeyValuePair
 #loading environment variable
 load_dotenv()
 
-class OpenRouterAgent:
+class OpenRouterAgent(BaseAgentModel):
     MODEL_NAME_MAP = {
         "R1": "deepseek/deepseek-r1-0528:free",
         "Qwen": "qwen/qwen3-4b:free"
@@ -28,7 +28,7 @@ class OpenRouterAgent:
             }
         }
 
-    async def get_response(self, message: str = None , model: str ="R1", history=None) -> LLMStructuredOutput:
+    async def get_response(self, message: str = "" , model: str ="R1", history=None) -> LLMStructuredOutput:
         model_name = self.MODEL_NAME_MAP.get(model)
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:

@@ -7,10 +7,10 @@ from typing import List,Literal
 import asyncio
 import json
 
-from schema import LLMStructuredOutput
-from agents.perplexity import PerplexityAgent
-from agents.gemini import GeminiAgent
-from agents.open_router import OpenRouterAgent
+from .schema import LLMStructuredOutput
+from .agents.perplexity import PerplexityAgent
+from .agents.gemini import GeminiAgent
+from .agents.open_router import OpenRouterAgent
 # from agents.multi_agent_orchestrator import MultiAgentOrchestrator
 
 app = FastAPI()
@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+#check if server is running
 @app.get("/")
 async def home():
     return {"message": "Hello, World!"}

@@ -4,7 +4,7 @@ import json
 import httpx
 from dotenv import load_dotenv
 from .base import BaseAgentModel
-from schema import LLMStructuredOutput,KeyValuePair
+from ..schema import LLMStructuredOutput,KeyValuePair
 
 #loading environment variable
 load_dotenv()

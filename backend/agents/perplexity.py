@@ -3,7 +3,7 @@ import httpx
 import json
 from dotenv import load_dotenv
 from .base import BaseAgentModel
-from schema import LLMStructuredOutput
+from ..schema import LLMStructuredOutput
 
 #loading environment variable
 load_dotenv()

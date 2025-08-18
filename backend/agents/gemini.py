@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 # from .base import BaseAgentModel
-from schema import LLMStructuredOutput
+from ..schema import LLMStructuredOutput
 
 
 #loading environment variable

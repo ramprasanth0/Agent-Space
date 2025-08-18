@@ -1,12 +1,24 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./backend:/app/backend
     ports:
       - "8000:8000"
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
     env_file: .env
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "3000:80"
-    depends_on:
-      - backend
+      - "3000:3000"
+    command: npm run dev
+    environment:
+    - VITE_BACKEND_URL=http://backend:8000

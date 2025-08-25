@@ -6,13 +6,30 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  AWS_REGION: ap-south-2
+  FRONTEND_ECR_REPOSITORY: projects/agent-space-frontend
+  BACKEND_ECR_REPOSITORY: projects/agent-space-backend
+
 jobs:
   build-and-test:
+    name: Build, Test & Deploy to ECR
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -20,14 +37,14 @@ jobs:
       - name: Set up Docker Compose
         uses: ndeloof/install-compose-action@v0.0.1
 
-      - name: Build containers
-        run: docker compose build
-
       - name: Create .env file for CI from secrets
         run: |
           echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" > .env
           echo "PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }}" >> .env
           echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env
+
+      - name: Build containers
+        run: docker compose build
 
       - name: Start containers
         run: docker compose up -d
@@ -40,3 +57,33 @@ jobs:
 
       - name: Stop containers
         run: docker compose down
+
+      - name: Build & Tag Frontend Image
+        working-directory: ./frontend
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG=${{ github.sha }}
+          docker build -f Dockerfile -t $ECR_REGISTRY/${{ env.FRONTEND_ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/${{ env.FRONTEND_ECR_REPOSITORY }}:$IMAGE_TAG $ECR_REGISTRY/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+
+      - name: Push Frontend Image to ECR
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG=${{ github.sha }}
+          docker push $ECR_REGISTRY/${{ env.FRONTEND_ECR_REPOSITORY }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+
+      - name: Build & Tag Backend Image
+        working-directory: ./backend
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG=${{ github.sha }}
+          docker build -f Dockerfile -t $ECR_REGISTRY/${{ env.BACKEND_ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/${{ env.BACKEND_ECR_REPOSITORY }}:$IMAGE_TAG $ECR_REGISTRY/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+
+      - name: Push Backend Image to ECR
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG=${{ github.sha }}
+          docker push $ECR_REGISTRY/${{ env.BACKEND_ECR_REPOSITORY }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ env.BACKEND_ECR_REPOSITORY }}:latest

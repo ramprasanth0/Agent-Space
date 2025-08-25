@@ -1,0 +1,74 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: ap-south-2
+  FRONTEND_ECR_REPOSITORY: projects/agent-space-frontend
+  BACKEND_ECR_REPOSITORY: projects/agent-space-backend
+
+jobs:
+  build-test-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build frontend Docker image
+        working-directory: ./frontend
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest .
+
+      - name: Build backend Docker image
+        working-directory: ./backend
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest .
+
+      - name: Push frontend image to ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+
+      - name: Push backend image to ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Ensure Docker network exists
+            docker network inspect my-app-network || docker network create my-app-network
+
+            # Deploy backend container
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+            docker rm -f backend || true
+            docker run -d --name backend --network my-app-network -p 8000:8000 \
+              --env GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
+              --env OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }} \
+              --env PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} \
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+
+            # Deploy frontend container
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+            docker rm -f frontend || true
+            docker run -d --name frontend --network my-app-network -p 80:80 \
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest

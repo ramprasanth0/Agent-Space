@@ -61,7 +61,7 @@ jobs:
             # Deploy backend container
             docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
             docker rm -f backend || true
-            docker run -d --name backend --network my-app-network -p 8000:8000 \
+            docker run -d --restart unless-stopped --name backend --network my-app-network -p 8000:8000 \
               --env GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
               --env OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }} \
               --env PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} \
@@ -70,5 +70,5 @@ jobs:
             # Deploy frontend container
             docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
             docker rm -f frontend || true
-            docker run -d --name frontend --network my-app-network -p 80:80 \
+            docker run -d --restart unless-stopped --name frontend --network my-app-network -p 80:80 \
               ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest

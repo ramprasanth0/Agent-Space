@@ -48,7 +48,7 @@ export default function Home({ toggleTheme }) {
         className={`flex justify-center relative ${hasStartedChat ? 'mt-0' : 'mt-20'}`}
       >
 
-        <HeroSection setHasStartedChat={setHasStartedChat} />
+        <HeroSection hasStartedChat={hasStartedChat} setHasStartedChat={setHasStartedChat} />
         {/* </div> */}
       </main>
     </div>

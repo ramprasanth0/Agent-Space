@@ -14,21 +14,6 @@ import Alert from "../components/Alert"
  * The backend expects the 'content' of every message to be a string.
  */
 
-const useDebounced = (value, delay) => {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-
-    return debouncedValue;
-};
 
 const sanitizeHistoryForApi = (messages) => {
     return messages.map(msg => {
@@ -61,7 +46,7 @@ const sanitizeHistoryForApi = (messages) => {
     });
 };
 
-export default function HeroSection({ setHasStartedChat }) {
+export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
 
     const alertRef = useRef();
@@ -164,39 +149,41 @@ export default function HeroSection({ setHasStartedChat }) {
             try {
                 switch (model) {
                     case "Sonar":
-                        console.log('Streaming from backend:', historyToSend);
+                        {
+                            console.log('Streaming from backend:', historyToSend);
 
-                        // Track the final structured response for conversation history
-                        let lastSonarResponse = null;
+                            // Track the final structured response for conversation history
+                            let lastSonarResponse = null;
 
-                        await streamChatToPerplexity(
-                            input, historyToSend, mode,
-                            (partial) => {
-                                lastSonarResponse = partial;
+                            await streamChatToPerplexity(
+                                input, historyToSend, mode,
+                                (partial) => {
+                                    lastSonarResponse = partial;
 
-                                setResponse(prev =>
-                                    prev.map(r =>
-                                        r.provider === model
-                                            ? { ...r, response: partial }
-                                            : r
-                                    )
-                                );
-                            },
-                            () => {
-                                setLoadingModels(prev => prev.filter(m => m !== model));
-                                replies[model] = lastSonarResponse || { answer: "No response" };
+                                    setResponse(prev =>
+                                        prev.map(r =>
+                                            r.provider === model
+                                                ? { ...r, response: partial }
+                                                : r
+                                        )
+                                    );
+                                },
+                                () => {
+                                    setLoadingModels(prev => prev.filter(m => m !== model));
+                                    replies[model] = lastSonarResponse || { answer: "No response" };
 
-                                // Check if all models done streaming
-                                if (loadingModels.length === 1) { // This model is the last one
-                                    setIsStreaming(false);
+                                    // Check if all models done streaming
+                                    if (loadingModels.length === 1) { // This model is the last one
+                                        setIsStreaming(false);
+                                    }
+                                },
+                                (error) => {
+                                    // ... error handling
+                                    replies[model] = { answer: `Error: ${error}` };
                                 }
-                            },
-                            (error) => {
-                                // ... error handling
-                                replies[model] = { answer: `Error: ${error}` };
-                            }
-                        );
-                        break;
+                            );
+                            break;
+                        }
 
                     case "Gemini":
                         {
@@ -387,7 +374,7 @@ export default function HeroSection({ setHasStartedChat }) {
                                 />
                             </div>
                         </div>
-                        <InputCard input={input} setInput={setInput} handleClick={handleClick} />
+                        <InputCard hasStartedChat={hasStartedChat} input={input} setInput={setInput} handleClick={handleClick} />
                     </div>
                 </div>
             ) : (
@@ -433,7 +420,7 @@ export default function HeroSection({ setHasStartedChat }) {
                                 />
                             </div>
                         </div>
-                        <InputCard input={input} setInput={setInput} handleClick={handleClick} />
+                        <InputCard hasStartedChat={hasStartedChat} input={input} setInput={setInput} handleClick={handleClick} />
                     </div>
                 </div>
             )}

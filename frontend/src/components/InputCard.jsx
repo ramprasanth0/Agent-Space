@@ -18,7 +18,7 @@ const PLACEHOLDERS = [
   "What happens if you divide by zero?",
 ];
 
-export default function InputCard({ input, loading, setInput, handleClick }) {
+export default function InputCard({ hasStartedChat, input, loading, setInput, handleClick }) {
   const textareaRef = useRef();
 
   // Autosize textarea on input change
@@ -48,7 +48,7 @@ export default function InputCard({ input, loading, setInput, handleClick }) {
           onChange={e => setInput(e.target.value)}
           disabled={loading}
           data-testid="inputcard-input"
-          placeholder={animatedPlaceholder}
+          placeholder={hasStartedChat ? "Ask anything..." : animatedPlaceholder}
           aria-label="User input"
           onKeyDown={e => {
             if (e.key === "Enter" && !e.shiftKey && !loading && input.trim()) {

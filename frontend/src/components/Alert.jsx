@@ -1,92 +1,61 @@
+// Alert.jsx  (pure JS)
 import React, {
-  useImperativeHandle,
-  useState,
-  useRef,
-  useEffect,
-  forwardRef,
+  forwardRef, useImperativeHandle, useEffect,
+  useRef, useState
 } from "react";
 import { createPortal } from "react-dom";
 
 const Alert = forwardRef(function Alert(
-  { visibleDuration = 4000, fadeDuration = 500, type = "info", maxWidth = 480 } = {},
+  { visibleDuration = 4000, fadeDuration = 300 } = {},
   ref
 ) {
-  const [message, setMessage] = useState("");
-  const [visible, setVisible] = useState(false);
-  const [kind, setKind] = useState(type);
+  const [msg, setMsg] = useState("");
+  const [open, setOpen] = useState(false);
+  const [targetRect, setTargetRect] = useState(null);
 
-  const fadeTimeout = useRef();
-  const unmountTimeout = useRef();
+  const fadeTimer = useRef();
+  const clearTimer = useRef();
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      show(msg, opts = {}) {
-        const hold = opts.visibleDuration ?? visibleDuration;
-        const fade = opts.fadeDuration ?? fadeDuration;
-        const nextType = opts.type ?? type;
+  useImperativeHandle(ref, () => ({
+    show(text, targetEl) {
+      if (!targetEl) return;            // need a target
+      setTargetRect(targetEl.getBoundingClientRect());
+      setMsg(text);
+      setOpen(true);
 
-        setKind(nextType);
-        setMessage(msg);
-        setVisible(true);
+      clearTimeout(fadeTimer.current);
+      clearTimeout(clearTimer.current);
+      fadeTimer.current = setTimeout(() => setOpen(false), visibleDuration);
+      clearTimer.current = setTimeout(() => setMsg(""), visibleDuration + fadeDuration);
+    }
+  }), [visibleDuration, fadeDuration]);
 
-        if (fadeTimeout.current) window.clearTimeout(fadeTimeout.current);
-        if (unmountTimeout.current) window.clearTimeout(unmountTimeout.current);
-
-        fadeTimeout.current = window.setTimeout(() => setVisible(false), hold);
-        unmountTimeout.current = window.setTimeout(() => setMessage(""), hold + fade);
-      },
-      hide() {
-        if (fadeTimeout.current) window.clearTimeout(fadeTimeout.current);
-        if (unmountTimeout.current) window.clearTimeout(unmountTimeout.current);
-        setVisible(false);
-        unmountTimeout.current = window.setTimeout(() => setMessage(""), fadeDuration);
-      },
-    }),
-    [visibleDuration, fadeDuration, type]
-  );
-
-  useEffect(() => {
-    return () => {
-      if (fadeTimeout.current) window.clearTimeout(fadeTimeout.current);
-      if (unmountTimeout.current) window.clearTimeout(unmountTimeout.current);
-    };
+  useEffect(() => () => {
+    clearTimeout(fadeTimer.current);
+    clearTimeout(clearTimer.current);
   }, []);
 
-  if (!message) return null;
+  if (!msg || !targetRect) return null;
 
-  const tone =
-    kind === "success"
-      ? "bg-emerald-500 text-black"
-      : kind === "error"
-        ? "bg-rose-500 text-white"
-        : kind === "warning"
-          ? "bg-amber-500 text-black"
-          : "bg-sky-500 text-black";
+  const style = {
+    position: "fixed",
+    left: targetRect.left + targetRect.width / 2,
+    top: targetRect.top - 40,        // 40 px above the bar
+    transform: "translateX(-50%)",
+    zIndex: 10_000,
+    opacity: open ? 1 : 0,
+    transition: `opacity ${fadeDuration}ms`,
+    pointerEvents: open ? "auto" : "none"
+  };
 
-  const node = (
-    <div
-      className={`fixed left-1/2 -translate-x-1/2 transition-opacity ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      style={{
-        top: 16,
-        zIndex: 2147483647,
-        transitionProperty: "opacity",
-        transitionDuration: `${fadeDuration}ms`,
-        maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-      }}
-      data-testid="app-alert"
-    >
-      <div className={`shadow-lg px-3 py-2 rounded-md border-0 text-sm flex items-center gap-2 ${tone}`}>
-        <span>{message}</span>
-      </div>
-    </div>
+  return createPortal(
+    <div style={style}
+      className="bg-amber-500 text-black text-sm px-3 py-1 rounded-md shadow-lg"
+      role="alert">
+      {msg}
+    </div>,
+    document.body
   );
-
-  return createPortal(node, document.body);
 });
 
 export default Alert;

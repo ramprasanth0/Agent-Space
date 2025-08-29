@@ -50,10 +50,9 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
     const models = ["Sonar", "Gemini", "R1", "Qwen"];
 
     const alertRef = useRef();
+    const toolbarRef = useRef(null);
     useEffect(() => {
-        if (alertRef.current) {
-            alertRef.current.show("Welcome! One-liner mode enabled");
-        }
+        alertRef.current?.show("Welcome! One-liner mode enabled", toolbarRef.current);
     }, []);
 
     // state var for model data from user
@@ -97,10 +96,11 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
         }
         setMode(newMode);
         //Show alert on toggle
-        alertRef.current.show(
-            mode === "conversation"
-                ? "One-liner mode enabled"
-                : "Conversation mode enabled (switching model will reset history)"
+        alertRef.current?.show(
+            newMode === "conversation"
+                ? "Conversation mode enabled (switching model will reset history)"
+                : "One-liner mode enabled",
+            toolbarRef.current
         );
     }
     let toShow = null;
@@ -353,11 +353,14 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
 
     return (
         <>
+            {/* portal lives once */}
+            <Alert ref={alertRef} />
+
             {uiMode === 'center' ? (
                 // Before chat starts: only show input & controls, centered vertically
                 <div className="flex flex-col w-2xl mx-auto justify-center">
                     <div className="bg-primary rounded-3xl shadow-lg w-full">
-                        <div className="flex items-center w-full">
+                        <div ref={toolbarRef} className="flex items-center w-full">
                             <ConversationToggle mode={mode} setMode={handleModeChange} />
                             <ModelSelector
                                 models={models}
@@ -400,10 +403,8 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
                         />
                     </div>
 
-                    <Alert ref={alertRef} />
-
                     <div className="flex flex-col flex-none w-full max-w-2xl mx-auto items-center bg-primary rounded-3xl shadow-lg">
-                        <div className="flex items-center w-full">
+                        <div ref={toolbarRef} className="flex items-center w-full">
                             <ConversationToggle mode={mode} setMode={handleModeChange} />
                             <ModelSelector
                                 models={models}

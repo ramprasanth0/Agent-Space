@@ -31,24 +31,35 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # -----------------------------
+      # Build & Push Frontend
+      # -----------------------------
       - name: Build frontend Docker image
         working-directory: ./frontend
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest .
-
-      - name: Build backend Docker image
-        working-directory: ./backend
-        run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest .
+          docker build --no-cache \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }} .
 
       - name: Push frontend image to ECR
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
+
+      # -----------------------------
+      # Build & Push Backend
+      # -----------------------------
+      - name: Build backend Docker image
+        working-directory: ./backend
+        run: |
+          docker build --no-cache \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }} .
 
       - name: Push backend image to ECR
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }}
 
+      # -----------------------------
+      # Deploy to EC2
+      # -----------------------------
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -60,16 +71,16 @@ jobs:
             docker network inspect my-app-network || docker network create my-app-network
 
             # Deploy backend container
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }}
             docker rm -f backend || true
             docker run -d --restart unless-stopped --name backend --network my-app-network -p 8000:8000 \
               --env GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
               --env OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }} \
               --env PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} \
-              ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:latest
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }}
 
             # Deploy frontend container
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
             docker rm -f frontend || true
             docker run -d --restart unless-stopped --name frontend --network my-app-network -p 80:80 \
-              ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}

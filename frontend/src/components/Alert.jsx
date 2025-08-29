@@ -49,10 +49,26 @@ const Alert = forwardRef(function Alert(
   };
 
   return createPortal(
-    <div style={style}
-      className="bg-amber-500 text-black text-sm px-3 py-1 rounded-md shadow-lg"
-      role="alert">
-      {msg}
+    <div style={style}>
+      <div
+        role="alert"
+        className="alert alert-info shadow-lg py-1 bg-amber-500 px-3 text-black text-sm items-center gap-2 min-h-0 rounded-md border-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          className="h-5 w-5 shrink-0 stroke-current mr-2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span>{msg}</span>
+      </div>
     </div>,
     document.body
   );

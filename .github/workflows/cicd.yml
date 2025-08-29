@@ -70,6 +70,10 @@ jobs:
             # Ensure Docker network exists
             docker network inspect my-app-network || docker network create my-app-network
 
+            # Authenticate EC2 with ECR (fixes expired token issue)
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} \
+              | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
             # Deploy backend container
             docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }}
             docker rm -f backend || true

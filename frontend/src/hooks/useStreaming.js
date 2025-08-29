@@ -41,7 +41,7 @@ export function useStreaming(
 
         // prevent default if it's an event
         if (isEventLike) {
-            try { maybeEventOrInput.preventDefault(); } catch (_) { }
+            try { maybeEventOrInput.preventDefault(); } catch (_) { /* empty */ }
         }
 
         // resolve the text to send

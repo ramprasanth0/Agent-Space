@@ -1,127 +1,188 @@
-import { useState, useCallback } from "react";
+// src/hooks/useStreaming.js
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
-    streamChatToPerplexity,
-    streamChatToGemini,
-    streamChatToDeepSeek,
-    streamChatToQwen
+  streamChatToPerplexity,
+  streamChatToGemini,
+  streamChatToDeepSeek,
+  streamChatToQwen
 } from "../api/Agents";
 
 /**
- * useStreaming(...)
- *
- * Signature unchanged:
- *   useStreaming(models, sanitizeHistory, messages, setMessages, mode, setHasStartedChat)
- *
- * Returns the same shape as before.
+ * useStreaming(...):
+ * Signature preserved:
+ *   useStreaming(models, sanitizeHistoryForApi, messages, setMessages, mode, setHasStartedChat)
  */
 export function useStreaming(
-    models,               // ["Sonar","Gemini","R1","Qwen"]
-    sanitizeHistory,
-    messages, setMessages,
-    mode, setHasStartedChat
+  models,
+  sanitizeHistoryForApi,
+  messages, setMessages,
+  mode, setHasStartedChat
 ) {
-    /* state */
-    const [input, setInput] = useState("");
-    const [response, setResponse] = useState([]);
-    const [loadingModels, setLoadingModels] = useState([]);
-    const [selectedModels, setSelectedModels] = useState([models[0]]);
-    const [lastUserQuestion, setLastUserQuestion] = useState("");
-    const [isStreaming, setIsStreaming] = useState(false);
+  const [input, setInput] = useState("");
+  const [response, setResponse] = useState([]);
+  const [loadingModels, setLoadingModels] = useState([]);
+  const [selectedModels, setSelectedModels] = useState([models[0]]);
+  const [lastUserQuestion, setLastUserQuestion] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
 
-    /**
-     * handleClick - flexible handler
-     * - Accepts (event) -> uses current `input` state (and calls e.preventDefault())
-     * - Accepts (string) -> uses provided string as the input to send
-     * - Accepts () -> uses current `input` state
-     */
-    const handleClick = useCallback(async (maybeEventOrInput) => {
-        // determine call shape
-        const isEventLike = maybeEventOrInput && typeof maybeEventOrInput.preventDefault === "function";
-        const isString = typeof maybeEventOrInput === "string";
+  // mountedRef prevents setState after unmount
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
-        // prevent default if it's an event
-        if (isEventLike) {
-            try { maybeEventOrInput.preventDefault(); } catch (_) { /* empty */ }
-        }
+  const handleClick = useCallback(async (maybeEventOrInput) => {
+    const isEventLike = maybeEventOrInput && typeof maybeEventOrInput.preventDefault === "function";
+    const isString = typeof maybeEventOrInput === "string";
+    if (isEventLike) {
+      try { maybeEventOrInput.preventDefault(); } catch (_) {}
+    }
 
-        // resolve the text to send
-        const inputToSend = isString ? maybeEventOrInput : input;
+    const inputToSend = isString ? maybeEventOrInput : input;
+    if (!inputToSend || !inputToSend.trim()) return;
 
-        if (!inputToSend || !inputToSend.trim()) return;
+    // prepare UI - single updates where possible
+    const providers = [...selectedModels];
+    if (mountedRef.current) {
+      setResponse(providers.map(m => ({ provider: m, response: null })));
+      setLoadingModels(providers);
+      setLastUserQuestion(inputToSend);
+      setInput("");
+      setIsStreaming(true);
+      setHasStartedChat(true);
+    }
 
-        // prepare UI
-        setResponse([]);
-        setLoadingModels(() => [...selectedModels]);
-        setResponse(selectedModels.map(m => ({ provider: m, response: null })));
-        setLastUserQuestion(inputToSend);
-        setInput(""); // clear the input in the UI
-        setIsStreaming(true);
-        setHasStartedChat(true);
-
-        const historyTrim = sanitizeHistory([
-            ...messages,
-            { role: "user", content: inputToSend }
-        ]);
-
-        const replies = {};
-
-        await Promise.all(selectedModels.map(async model => {
-            let last = null;
-            const update = part =>
-                setResponse(prev => prev.map(r => r.provider === model ? { ...r, response: part } : r));
-
-            const done = () =>
-                setLoadingModels(q => {
-                    const next = q.filter(m => m !== model);
-                    if (next.length === 0) setIsStreaming(false);
-                    return next;
-                });
-
-            const fail = err => (replies[model] = { answer: `Error: ${err}` });
-
-            try {
-                switch (model) {
-                    case "Sonar":
-                        await streamChatToPerplexity(inputToSend, historyTrim, mode, p => (last = p, update(p)), done, fail);
-                        break;
-                    case "Gemini":
-                        await streamChatToGemini(inputToSend, historyTrim, mode, p => (last = p, update(p)), done, fail);
-                        break;
-                    case "R1":
-                        await streamChatToDeepSeek(inputToSend, historyTrim, mode, p => (last = p, update(p)), done, fail);
-                        break;
-                    case "Qwen":
-                        await streamChatToQwen(inputToSend, historyTrim, mode, p => (last = p, update(p)), done, fail);
-                        break;
-                    default:
-                        replies[model] = { answer: "Model not implemented" };
-                }
-            } catch (err) {
-                replies[model] = { answer: `Error: ${err}` };
-            }
-
-            replies[model] ||= last || { answer: "No response" };
-        }));
-
-        /* push to chat history (conversation mode) */
-        if (mode === "conversation" && selectedModels.length === 1) {
-            const m = selectedModels[0];
-            setMessages(old => [
-                ...old,
-                { role: "user", content: inputToSend },
-                { role: "assistant", content: replies[m], provider: m }
-            ]);
-        } else {
-            setMessages([]); // keep one-liner history empty
-        }
-    }, [
-        input, selectedModels, setHasStartedChat,
-        sanitizeHistory, messages, mode, setMessages
+    const historyTrim = sanitizeHistoryForApi([
+      ...messages,
+      { role: "user", content: inputToSend }
     ]);
 
-    return {
-        input, setInput, handleClick,
-        response, loadingModels, isStreaming, lastUserQuestion,
-        selectedModels, setSelectedModels
-    };
+    const replies = {};
+
+    await Promise.all(providers.map(async (model) => {
+      let last = null;
+
+      const update = (part) => {
+        if (!mountedRef.current) return;
+        setResponse(prev => prev.map(r => r.provider === model ? { ...r, response: part } : r));
+      };
+
+      const done = () => {
+        if (!mountedRef.current) {
+          // still update loadingModels to keep internal counters consistent
+          setLoadingModels(prev => prev.filter(m => m !== model));
+          return;
+        }
+        setLoadingModels(prev => {
+          const next = prev.filter(m => m !== model);
+          if (next.length === 0) {
+            setIsStreaming(false);
+          }
+          return next;
+        });
+      };
+
+      const fail = (err) => { replies[model] = { answer: `Error: ${err}` }; };
+
+      try {
+        switch (model) {
+          case "Sonar":
+            await streamChatToPerplexity(
+              inputToSend, historyTrim, mode,
+              (partial) => { last = partial; update(partial); },
+              done,
+              (err) => { fail(err); }
+            );
+            break;
+
+          case "Gemini": {
+            let lastGeminiResponse = null;
+            let accumulatedTokens = '';
+            let updateTimer = null;
+
+            await streamChatToGemini(
+              inputToSend, historyTrim, mode,
+              (partial) => {
+                lastGeminiResponse = partial;
+                if (partial && partial.answer && !partial.explanation) {
+                  accumulatedTokens += partial.answer;
+                  if (!updateTimer) {
+                    updateTimer = setTimeout(() => {
+                      update({ answer: accumulatedTokens });
+                      updateTimer = null;
+                    }, 50); // small debounce for UI stability (50ms)
+                  }
+                } else {
+                  if (updateTimer) { clearTimeout(updateTimer); updateTimer = null; }
+                  update(partial);
+                }
+              },
+              () => {
+                if (updateTimer) clearTimeout(updateTimer);
+                done();
+                replies[model] = lastGeminiResponse || { answer: "No response received" };
+              },
+              (err) => { fail(err); }
+            );
+            break;
+          }
+
+          case "R1":
+            await streamChatToDeepSeek(
+              inputToSend, historyTrim, mode,
+              (partial) => { last = partial; update(partial); },
+              done,
+              (err) => { fail(err); }
+            );
+            break;
+
+          case "Qwen":
+            await streamChatToQwen(
+              inputToSend, historyTrim, mode,
+              (partial) => { last = partial; update(partial); },
+              done,
+              (err) => { fail(err); }
+            );
+            break;
+
+          default:
+            replies[model] = { answer: "Model not implemented" };
+        }
+      } catch (err) {
+        replies[model] = { answer: `Error: ${err}` };
+      }
+
+      replies[model] ||= last || { answer: "No response" };
+    }));
+
+    // push to chat history (conversation mode)
+    if (mode === "conversation" && selectedModels.length === 1) {
+      const m = selectedModels[0];
+      const assistant = replies[m];
+      if (assistant && (assistant.answer || assistant.sources || assistant.facts)) {
+        if (mountedRef.current) {
+          setMessages(old => [
+            ...old,
+            { role: "user", content: inputToSend },
+            { role: "assistant", content: assistant, provider: m }
+          ]);
+        }
+      } else {
+        if (mountedRef.current) {
+          setMessages(old => [...old, { role: "user", content: inputToSend }]);
+        }
+      }
+    } else {
+      if (mountedRef.current) {
+        setMessages([]);
+      }
+    }
+  }, [input, selectedModels, setHasStartedChat, sanitizeHistoryForApi, messages, mode, setMessages]);
+
+  return {
+    input, setInput, handleClick,
+    response, loadingModels, isStreaming, lastUserQuestion,
+    selectedModels, setSelectedModels
+  };
 }

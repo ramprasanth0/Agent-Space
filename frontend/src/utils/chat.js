@@ -1,7 +1,14 @@
-// tree-shakable constants
+
+
+// canonical model list used across the app
 export const models = ["Sonar", "Gemini", "R1", "Qwen"];
 
-/** Strip objects/undefined from history so the backend sees plain strings */
+ /*
+ * sanitizeHistoryForApi(messages)
+ *
+ * Exactly the same logic as your inline function — converts message content
+ * to strings, extracts `.answer` when content is an object, and filters out empty items.
+ */
 export function sanitizeHistoryForApi(messages) {
     return messages.map(msg => {
         let content = '';
@@ -31,4 +38,4 @@ export function sanitizeHistoryForApi(messages) {
         }
         return isValid;
     });
-};
+}

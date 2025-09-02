@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
 import HeroSection from "../components/HeroSection"
 import MoodToggle from "../components/MoodToggle"
-
 import InfoCard from "../components/InfoCard"
+import FeedbackForm from "../components/FeedbackForm"
 
 export default function Home({ toggleTheme }) {
   const [hasStartedChat, setHasStartedChat] = useState(false);
@@ -51,6 +51,9 @@ export default function Home({ toggleTheme }) {
         <HeroSection hasStartedChat={hasStartedChat} setHasStartedChat={setHasStartedChat} />
         {/* </div> */}
       </main>
+
+      {/* Feedback floating widget */}
+      <FeedbackForm />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import StructuredContentDisplay from "./StructuredContentDisplay";
 
-export default function ResponseCard({ userQuestion, response, loadingModels }) {
+export default function ResponseCard({ userQuestion, response, loadingModels, streamCompletion }) {
   if (!Array.isArray(response) || response.length === 0) return null;
   const gridColsClass =
     response.length === 1 ? "grid-cols-1"
@@ -12,8 +12,11 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
 
   return (
     <div className={`grid ${gridColsClass} gap-4 p-6`}>
-      {response.map((res, idx) => (
-        <div
+      {response.map((res, idx) => {
+        // Determine if the stream for *this specific card* is complete.
+        const isThisStreamComplete = streamCompletion[res.provider] || false;
+        return (
+          <div
           key={res.provider || idx}
           className="bg-[var(--color-response_card_bg)] rounded-3xl m-2 p-3"
         >
@@ -36,7 +39,10 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
               </div>
             ) : res.response ? (
               // Show structured content (works for both streaming and final)
-              <StructuredContentDisplay content={res.response} />
+              <StructuredContentDisplay 
+              content={res.response} 
+              isStreamComplete={isThisStreamComplete}
+              />
             ) : null}
 
             {/* Show streaming indicator if still loading but has partial content */}
@@ -48,7 +54,8 @@ export default function ResponseCard({ userQuestion, response, loadingModels }) 
             )}
           </div>
         </div>
-      ))}
+        );
+})}
     </div>
   );
 }

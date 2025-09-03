@@ -1,3 +1,8 @@
+// HeroSection.js
+// NOTE: This is the full, updated code for the file.
+// It now tracks stream completion on a per-model basis to ensure
+// each response card finalizes independently. (NEW)
+
 import React, { useState, useRef, useEffect } from "react";
 import { useStreaming } from "../hooks/useStreaming";
 import { sanitizeHistoryForApi, models as modelsConst } from "../utils/chat";
@@ -6,22 +11,11 @@ import ToolBar from "./ToolBar";
 import ResponseCard from "./ResponseCard";
 import Alert from "../components/Alert";
 
-/**
- * HeroSection
- *
- * - Uses useStreaming hook for all streaming logic (signature preserved)
- * - Keeps UI layout and exact center/chat mode logic from your original file
- * - Uses sanitizeHistoryForApi imported from utils/chat
- *
- * Styling changes only: mobile-first responsive classes, consistent paddings,
- * fixed-height controls, and a flexible scrollable response area.
- */
-
 export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
-  // models (kept same)
+  // models
   const models = modelsConst || ["Sonar", "Gemini", "R1", "Qwen"];
 
-  // refs for alert / toolbar (same)
+  // refs
   const alertRef = useRef();
   const toolbarRef = useRef(null);
 
@@ -29,18 +23,23 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
     alertRef.current?.show("Welcome! One-liner mode enabled", toolbarRef.current);
   }, []);
 
-  // message history (keeps same)
-  const [messages, setMessages] = useState([]); // array of { role, content }
+  // message history
+  const [messages, setMessages] = useState([]);
 
-  // mode (conversation | one-liner)
+  // mode
   const [mode, setMode] = useState("one-liner");
 
-  // UI mode (center | chat)
+  // UI mode
   const [uiMode, setUIMode] = useState('center');
 
   const chatContainerRef = useRef(null);
 
-  // useStreaming hook (signature preserved)
+  // --- (NEW) Per-model stream completion state ---
+  // We now use an object to track the completion status for each model's stream.
+  // The key is the model name (e.g., "Sonar"), and the value is a boolean.
+  const [streamCompletion, setStreamCompletion] = useState({});
+
+  // useStreaming hook - it will now call our new onComplete handler
   const {
     input, setInput, handleClick,
     response, loadingModels,
@@ -50,15 +49,31 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
     models,
     sanitizeHistoryForApi,
     messages, setMessages,
-    mode, setHasStartedChat
+    mode, setHasStartedChat,
+    // (NEW) Pass a custom onComplete handler to the hook.
+    // This function will be called by the hook when a stream for a specific model finishes.
+    (modelName) => {
+      setStreamCompletion(prev => ({ ...prev, [modelName]: true }));
+    }
   );
 
-  // preserve original uiMode logic exactly
+  // When a new request starts, we must reset the completion status for the selected models.
+  useEffect(() => {
+    if (isStreaming) {
+      const resetState = {};
+      selectedModels.forEach(model => {
+        resetState[model] = false;
+      });
+      setStreamCompletion(resetState);
+    }
+  }, [isStreaming, selectedModels]);
+
+  // uiMode logic remains the same
   useEffect(() => {
     if (
-      Array.isArray(response) && response.some(r => r && r.response) ||
-      Array.isArray(messages) && messages.length > 0 ||
-      Array.isArray(loadingModels) && loadingModels.length > 0
+      (Array.isArray(response) && response.some(r => r?.response)) ||
+      (Array.isArray(messages) && messages.length > 0) ||
+      (Array.isArray(loadingModels) && loadingModels.length > 0)
     ) {
       setUIMode('chat');
     } else {
@@ -66,15 +81,12 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
     }
   }, [response, messages, loadingModels]);
 
-  // preserve original mode-change logic exactly (uses newMode)
+  // mode-change logic remains the same
   function handleModeChange(newMode) {
     if (newMode === "conversation" && selectedModels.length !== 1) {
-      // If switching to conversation with none or more than one model selected → reset to empty
       setSelectedModels([]);
     }
     setMode(newMode);
-
-    //Show alert on toggle (use newMode)
     alertRef.current?.show(
       newMode === "conversation"
         ? "Conversation mode enabled (switching model will reset history)"
@@ -83,7 +95,7 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
     );
   }
 
-  // conversation fallback toShow logic (exactly as original)
+  // conversation fallback logic remains the same
   let toShow = null;
   if (mode === "conversation" && selectedModels.length === 1 && messages.length > 0 && !isStreaming) {
     const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
@@ -94,25 +106,22 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
 
   return (
     <>
-      {/* Portal / alert (unchanged logic) */}
       <Alert ref={alertRef} />
 
       {uiMode === 'center' ? (
-        // Before chat starts: only show input & controls, centered vertically
-        // Mobile-first: full width with horizontal padding, constrained at md+
         <div className="flex flex-col w-full max-w-full px-4 sm:px-6 md:w-2xl md:mx-auto justify-center">
           <div className="bg-primary rounded-3xl shadow-lg w-full">
             <ToolBar
-                ref={toolbarRef}
-                mode={mode}
-                onModeChange={handleModeChange}
-                models={models}
-                selected={selectedModels}
-                setSelected={setSelectedModels}
-                resetMessages={setMessages}
-                loading={Array.isArray(loadingModels) && loadingModels.length > 0}
-                disabled={!input?.trim()}
-                onSubmit={handleClick}
+              ref={toolbarRef}
+              mode={mode}
+              onModeChange={handleModeChange}
+              models={models}
+              selected={selectedModels}
+              setSelected={setSelectedModels}
+              resetMessages={setMessages}
+              loading={isStreaming}
+              disabled={!input?.trim()}
+              onSubmit={handleClick}
             />
             <InputCard
               hasStartedChat={hasStartedChat}
@@ -123,9 +132,6 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
           </div>
         </div>
       ) : (
-        // After chat starts: full container with response and controls
-        // Mobile-first: full-width, constrained on medium+ screens.
-        // The response area grows; controls remain visually identical in size.
         <div
           className={`
             flex flex-col mx-auto rounded-3xl shadow-lg relative bg-primary/50 transition-all
@@ -133,7 +139,6 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
             ${mode === 'one-liner' && selectedModels.length > 1 ? 'max-w-7xl' : 'max-w-full md:max-w-2xl'}
           `}
         >
-          {/* Response area: flexible, scrollable, with sensible padding on small screens */}
           <div
             ref={chatContainerRef}
             className={`
@@ -141,26 +146,27 @@ export default function HeroSection({ hasStartedChat, setHasStartedChat }) {
               ${mode === 'one-liner' && selectedModels.length > 1 ? 'max-w-7xl' : 'max-w-full md:max-w-2xl'}
             `}
           >
+            {/* --- (NEW) Pass the completion state object down to the ResponseCard --- */}
             <ResponseCard
               userQuestion={lastUserQuestion}
               response={toShow || response}
               loadingModels={loadingModels}
+              streamCompletion={streamCompletion}
             />
           </div>
 
-          {/* Controls wrapper: pinned at bottom of the container, fixed visual size */}
           <div className="flex flex-col flex-none w-full max-w-2xl mx-auto items-center bg-primary rounded-3xl shadow-lg max-sm:max-w-full max-sm:rounded-xl">
             <ToolBar
-                ref={toolbarRef}
-                mode={mode}
-                onModeChange={handleModeChange}
-                models={models}
-                selected={selectedModels}
-                setSelected={setSelectedModels}
-                resetMessages={setMessages}
-                loading={Array.isArray(loadingModels) && loadingModels.length > 0}
-                disabled={!input?.trim()}
-                onSubmit={handleClick}
+              ref={toolbarRef}
+              mode={mode}
+              onModeChange={handleModeChange}
+              models={models}
+              selected={selectedModels}
+              setSelected={setSelectedModels}
+              resetMessages={setMessages}
+              loading={isStreaming}
+              disabled={!input?.trim()}
+              onSubmit={handleClick}
             />
             <InputCard
               hasStartedChat={hasStartedChat}

@@ -22,4 +22,4 @@ class LLMStructuredOutput(BaseModel):
     sources: Optional[List[Source]] = None
     facts: Optional[List[str]] = None
     actions: Optional[List[Action]] = None
-    extra: Optional[List[KeyValuePair]] = None
+    nerd_stats: Optional[List[KeyValuePair]] = None

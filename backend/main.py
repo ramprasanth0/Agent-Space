@@ -1,7 +1,6 @@
-from fastapi import FastAPI,HTTPException,APIRouter, BackgroundTasks
+from fastapi import FastAPI,HTTPException,Request, BackgroundTasks
 from fastapi.responses import JSONResponse,StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.concurrency import run_in_threadpool
 from fastapi import status
 from pydantic import BaseModel,constr
 from pydantic import Field
@@ -11,7 +10,7 @@ import json
 import os, boto3
 from botocore.exceptions import ClientError
 
-from .schema import LLMStructuredOutput
+from .schema import LLMStructuredOutput,Source,KeyValuePair
 from .agents.perplexity import PerplexityAgent
 from .agents.gemini import GeminiAgent
 from .agents.open_router import OpenRouterAgent
@@ -48,6 +47,7 @@ class ChatRequest(BaseModel):
     message : str
     history: List[Message] = []
     mode: str = "one-liner"  # or "conversation"
+    structured_followup: bool = True  # fill non-token fields at end
 
 class ChatResponse(BaseModel):
     provider: str
@@ -58,6 +58,32 @@ class MultiAgentRequest(BaseModel):
     message: str
     agents: List[str]
 
+# (NEW) Normalize provider-specific search_results into List[Source]
+def normalize_sources(raw) -> list[Source] | None:
+    """
+    Convert Perplexity search_results into schema Source objects.
+    Expects items with 'url' and optional 'title'; ignores malformed entries.
+    """
+    out: list[Source] = []
+    if isinstance(raw, list):
+        for item in raw:
+            if isinstance(item, dict):
+                url = item.get("url") or item.get("source") or ""  # tolerate alt keys
+                title = item.get("title")
+                if url:
+                    out.append(Source(url=url, title=title))
+    return out or None
+
+# (NEW) Convert error/usage data into List[KeyValuePair] with string values
+def to_extra_kv(error: str | None, usage: dict | None) -> list[KeyValuePair] | None:
+    kv: list[KeyValuePair] = []
+    if error:
+        kv.append(KeyValuePair(key="error", value=error))
+    if usage:
+        # Convert the usage dictionary into individual key-value pairs.
+        for key, value in usage.items():
+            kv.append(KeyValuePair(key=key, value=str(value)))
+    return kv or None
 
 #function to normalize history
 def normalize_history(history):
@@ -76,6 +102,17 @@ def normalize_history(history):
 async def sse_event(data: str):
     return f"data: {data}\n\n"
 
+def sse(event: str, data: dict | str, seq: int | None = None) -> str:
+    """
+    Format an SSE frame with optional id and named event, per MDN's text/event-stream framing. (NEW)
+    """
+    prefix = ""
+    if seq is not None:
+        prefix += f"id: {seq}\n"
+    if event:
+        prefix += f"event: {event}\n"
+    payload = json.dumps(data, ensure_ascii=False) if isinstance(data, (dict, list)) else str(data)
+    return f"{prefix}data: {payload}\n\n"  # MDN SSE framing
 
 ###############################################
 ######## streaming api endpoints ##################
@@ -83,45 +120,89 @@ async def sse_event(data: str):
 
 # Streaming endpoint for Perplexity
 @app.post("/stream/perplexity")
-async def stream_perplexity(request: ChatRequest):
+async def stream_perplexity(request: Request, payload: ChatRequest):
+    # ... (keep normalize_history function and its call) ...
+    history_payload = normalize_history(payload.history)
 
-    history_payload = normalize_history(request.history)
-    print(history_payload)
     async def event_generator():
-        accumulated_answer = ""
-        
+        accumulated_answer = []
+        latest_sources = None
+        latest_usage = None
+        seq = 0
+
+        upstream = None
         try:
-            # Stream raw text
-            async for partial in perplexity_agent.stream_response(
-                message=request.message,
+            upstream = perplexity_agent.stream_response(
+                message=payload.message,
                 history=history_payload
-            ):
-                token = partial.get("answer", "")
-                accumulated_answer += token
-                # Stream individual tokens
-                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
-                await asyncio.sleep(0)
-
-            # Create structured response from accumulated text
-            final_structured = LLMStructuredOutput(
-                answer=accumulated_answer,
-                explanation=None,
-                sources=None,
-                facts=None,
-                code=None,
-                language=None,
-                actions=None,
-                extra=None,
             )
-            
-            # Send final structured object
-            yield f"data: {final_structured.model_dump_json()}\n\n"
-            yield "data: [DONE]\n\n"
 
-        except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            async for partial in upstream:
+                if await request.is_disconnected():
+                    break
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+                # Stream individual tokens
+                token = partial.get("answer", "")
+                if token:
+                    accumulated_answer.append(token)
+                    seq += 1
+                    yield sse("token", {"answer": token}, seq)
+                    await asyncio.sleep(0)
+
+                # Stream sources if available
+                if "search_results" in partial:
+                    latest_sources = partial.get("search_results")
+                    seq += 1
+                    yield sse("sources", {"sources": latest_sources}, seq)
+                    await asyncio.sleep(0)
+
+                # Stream usage data when it arrives.
+                if "usage" in partial:
+                    latest_usage = partial["usage"]
+                    yield sse("usage", latest_usage, seq)
+                    seq += 1
+
+        except (asyncio.CancelledError, ConnectionResetError, BrokenPipeError):
+            return
+        finally:
+            if upstream and hasattr(upstream, "aclose"):
+                try:
+                    await upstream.aclose()
+                except Exception:
+                    pass
+
+        # After streaming, build the final object without usage/extra fields.
+        if not await request.is_disconnected():
+            try:
+                final_structured = LLMStructuredOutput(
+                    answer="".join(accumulated_answer),
+                    explanation=None,
+                    sources=normalize_sources(latest_sources),
+                    facts=None,
+                    code=None,
+                    language=None,
+                    actions=None,
+                    nerd_stats=to_extra_kv(None, latest_usage)
+                )
+                seq += 1
+                yield sse("final", final_structured.model_dump(), seq)
+            except Exception as ve:
+                seq += 1
+                yield sse("error", {"message": "finalization failed", "detail": str(ve)}, seq)
+
+        if not await request.is_disconnected():
+            seq += 1
+            yield sse("done", "[DONE]", seq)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 # Streaming endpoint for Gemini

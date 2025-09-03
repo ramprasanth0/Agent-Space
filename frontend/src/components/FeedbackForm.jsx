@@ -90,7 +90,7 @@ export default function FeedbackForm() {
                 onChange={handleChange}
                 placeholder="Your Input"
                 className="
-                bg-black
+                bg-gray-900
                   border-none
                   p-2 rounded
                   focus:outline-none focus:ring-4 focus:ring-purple-800 transition

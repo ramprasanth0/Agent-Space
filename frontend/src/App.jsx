@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Home from './pages/Home';
 import StarBackground from './components/StarField/StarBackground';
+import lightBg from "/assets/light.jpg";
 
 export default function App() {
   // 'system' mode follows OS theme, 'manual' mode respects user's toggle choice
@@ -80,10 +81,11 @@ export default function App() {
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 w-full h-full bg-[url(./assets/light.jpg)] bg-cover bg-center z-0
+        className="absolute inset-0 w-full h-full bg-cover bg-center z-0
                    [html[data-theme='agentspace-dark']_&]:opacity-0
                    [html[data-theme='agentspace-light']_&]:opacity-100
                    transition-opacity duration-300"
+        style={{ backgroundImage: `url(${lightBg})` }}
         aria-hidden="true"
       />
 

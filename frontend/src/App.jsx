@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Home from './pages/Home';
 import StarBackground from './components/StarField/StarBackground';
-import lightBg from "/assets/light.jpg";
+import lightBg from "../public/assets/light.jpg";
 
 export default function App() {
   // 'system' mode follows OS theme, 'manual' mode respects user's toggle choice

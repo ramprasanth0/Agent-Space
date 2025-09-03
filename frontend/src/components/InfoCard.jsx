@@ -1,6 +1,7 @@
 // InfoCard.jsx
-// NOTE: This is the full, updated code using a React Portal to prevent
-// the info card from being cut off by the header. (NEW)
+// NOTE: This is the full, final code for the file.
+// It uses inline styles to directly apply the CSS color variables,
+// which is the most reliable method for portal-rendered components. (NEW)
 
 import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom"; // Import ReactDOM for portals.
@@ -30,11 +31,10 @@ export default function InfoCard() {
   useEffect(() => {
     if (infoVisible && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      
+
       // Position the card centered horizontally with the icon, 8px below it.
       const top = rect.bottom + window.scrollY + 8;
-      const left = rect.left + window.scrollX + (rect.width / 2);
-
+      const left = rect.left + window.scrollX;
       setCardCoords({ top, left });
     }
   }, [infoVisible]);
@@ -46,18 +46,20 @@ export default function InfoCard() {
         position: 'absolute',
         top: `${cardCoords.top}px`,
         left: `${cardCoords.left}px`,
-        transform: 'translateX(-5%)', // This keeps the card centered on the icon.
+        // (NEW) Directly apply the background and text colors using inline styles.
+        backgroundColor: 'var(--color-infocard-bg)',
+        borderColor: 'var(--color-infocard-border)',
+        color: 'var(--color-base-content)',
       }}
       className={`
-        z-50 max-w-xs w-max rounded-xl
+        z-50 rounded-xl
         backdrop-blur-sm shadow-lg px-4 py-2
         text-left text-base font-medium animate-fade-down
-        bg-[var(--color-infocard-bg)]
-        border border-[var(--color-infocard-border)]
-        text-[var(--color-base-content)]
+        border
+        w-[90vw] sm:w-auto sm:max-w-xs
       `}
     >
-      <div className="font-bold text-[var(--color-neutral)] text-sm mb-1 flex items-center justify-between">
+      <div className="font-bold text-sm mb-1 flex items-center justify-between">
         <span>Info:</span>
         {locked && (
           <button
@@ -73,13 +75,13 @@ export default function InfoCard() {
         <span>Modes :</span>
         <ul className="space-y-1 text-left text-sm">
           <li>
-            <div className="font-bold text-[var(--color-secondary)]">
-              One-Liner <span className="font-bold text-s text-neutral">(Provided quick and efficient sol - No memory)</span>
+            <div style={{ color: 'var(--color-secondary)' }} className="font-bold">
+              One-Liner <span style={{ color: 'var(--color-neutral)' }} className="font-bold text-s">(Provides quick & efficient sol - No memory)</span>
             </div>
           </li>
           <li>
-            <div className="font-bold text-[var(--color-secondary)]">
-              Conversation <span className="font-bold text-s text-neutral">(Provided tailored solution - has memory)</span>
+            <div style={{ color: 'var(--color-secondary)' }} className="font-bold">
+              Conversation <span style={{ color: 'var(--color-neutral)' }} className="font-bold text-s">(Provides tailored solution - has memory)</span>
             </div>
           </li>
         </ul>
@@ -88,34 +90,34 @@ export default function InfoCard() {
         <span>Models :</span>
         <ul className="space-y-3 text-left text-sm">
           <li>
-            <div className="font-bold text-[var(--color-secondary)]">
-              Perplexity <span className="font-bold text-s text-neutral">(Sonar)</span>
+            <div style={{ color: 'var(--color-secondary)' }} className="font-bold">
+              Perplexity <span style={{ color: 'var(--color-neutral)' }} className="font-bold text-s">(Sonar)</span>
             </div>
-            <div className="pl-1 text-[var(--color-base-content)] text-xs">
+            <div style={{ color: 'var(--color-base-content)' }} className="pl-1 text-xs">
               Provides quick, grounded answers by connecting to the internet in real-time.
             </div>
           </li>
           <li>
-            <div className="font-bold text-[var(--color-info)]">
-              Gemini <span className="font-bold text-s text-neutral">(1.5 Flash)</span>
+            <div style={{ color: 'var(--color-info)' }} className="font-bold">
+              Gemini <span style={{ color: 'var(--color-neutral)' }} className="font-bold text-s">(1.5 Flash)</span>
             </div>
-            <div className="pl-1 text-[var(--color-base-content)] text-xs">
+            <div style={{ color: 'var(--color-base-content)' }} className="pl-1 text-xs">
               Optimized for speed and scale in chat and on-demand content generation.
             </div>
           </li>
           <li>
-            <div className="font-bold text-[var(--color-warning)]">
-              DeepSeek <span className="font-bold text-s text-neutral">(R1)</span>
+            <div style={{ color: 'var(--color-warning)' }} className="font-bold">
+              DeepSeek <span style={{ color: 'var(--color-neutral)' }} className="font-bold text-s">(R1)</span>
             </div>
-            <div className="pl-1 text-[var(--color-base-content)] text-xs">
+            <div style={{ color: 'var(--color-base-content)' }} className="pl-1 text-xs">
               Outstanding in mathematics, programming, and logical reasoning.
             </div>
           </li>
           <li>
-            <div className="font-bold text-[var(--color-success)]">
-              Qwen <span className="font-bold text-s text-neutral">(Qwen3 Coder)</span>
+            <div style={{ color: 'var(--color-success)' }} className="font-bold">
+              Qwen <span style={{ color: 'var(--color-neutral)' }} className="font-bold text-s">(Qwen3 Coder)</span>
             </div>
-            <div className="pl-1 text-[var(--color-base-content)] text-xs">
+            <div style={{ color: 'var(--color-base-content)' }} className="pl-1 text-xs">
               A Mixture-of-Experts (MoE) model specialized for agentic coding tasks.
             </div>
           </li>
@@ -139,7 +141,6 @@ export default function InfoCard() {
         setHovered(false);
       }}
     >
-      {/* Icon remains the same */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"

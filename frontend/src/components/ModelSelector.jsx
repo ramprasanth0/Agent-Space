@@ -35,30 +35,39 @@ export default function ModelSelector({
     }
 
     return (
-        <div className="bg-[var(--color-neutral)] my-3 mr-3 ml-2 rounded-full flex gap-2 p-2 justify-center">
-            {models.map((m) => {
-                const isSelected = selected.includes(m);
-                return (
-                    <button
-                        type="button"
-                        key={m}
-                        onClick={() => toggleModel(m)}
-                        className={`flex max-w-xs px-4 py-2 rounded-full transition font-semibold border border-none
+    <div
+      className="
+        bg-[var(--color-neutral)] my-3 mr-3 ml-2 rounded-full flex gap-2 p-2 justify-center
+        max-sm:my-0 max-sm:mx-1 max-sm:gap-1 max-sm:p-2
+      "
+    >
+      {models.map((m) => {
+        const isSelected = selected.includes(m);
+        return (
+          <button
+            type="button"
+            key={m}
+            onClick={() => toggleModel(m)}
+            className={`
+              flex items-center rounded-full transition font-semibold border border-none
+              px-4 py-2 text-base
               ${isSelected
-                                ? "bg-[var(--color-secondary)] text-black"
-                                : "bg-[var(--color-tab_unselected)] text-white hover:bg-[var(--color-tab_unselected_hover)] hover:text-black"
-                            }`}
-                    >
-                        <img
-                            src={modelIcons[m]}
-                            alt={`${m} icon`}
-                            className="w-6 h-6 mr-2"
-                            draggable="false"
-                        />
-                        {m}
-                    </button>
-                );
-            })}
-        </div>
-    );
+                ? "bg-[var(--color-secondary)] text-black"
+                : "bg-[var(--color-tab_unselected)] text-white hover:bg-[var(--color-tab_unselected_hover)] hover:text-black"
+              }
+              max-sm:px-2 max-sm:py-1 max-sm:text-sm
+            `}
+          >
+            <img
+              src={modelIcons[m]}
+              alt={`${m} icon`}
+              className="w-6 h-6 mr-2 max-sm:w-5 max-sm:h-5 max-sm:mr-1"
+              draggable="false"
+            />
+            {m}
+          </button>
+        );
+      })}
+    </div>
+  );
 }

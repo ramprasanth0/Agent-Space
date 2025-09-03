@@ -97,33 +97,91 @@ export function useStreaming(
             break;
 
           case "Gemini": {
+            // Buffering approach for Gemini streaming tokens.
+            // Many Gemini streams arrive as tiny tokens; we accumulate them
+            // and update the UI with a small debounce for stability.
             let lastGeminiResponse = null;
-            let accumulatedTokens = '';
-            let updateTimer = null;
+            let accumulated = "";
+            let flushTimer = null;
+            const FLUSH_MS = 50; // slightly larger debounce for stability
+
+            const scheduleFlush = () => {
+              if (flushTimer) return;
+              flushTimer = setTimeout(() => {
+                // Only update if we still have accumulated tokens
+                if (accumulated && mountedRef.current) {
+                  update({ answer: accumulated });
+                }
+                flushTimer = null;
+              }, FLUSH_MS);
+            };
+
+            const clearFlushTimer = () => {
+              if (flushTimer) {
+                clearTimeout(flushTimer);
+                flushTimer = null;
+              }
+            };
 
             await streamChatToGemini(
               inputToSend, historyTrim, mode,
               (partial) => {
+                // Remember last structured partial for final replies record
                 lastGeminiResponse = partial;
-                if (partial && partial.answer && !partial.explanation) {
-                  accumulatedTokens += partial.answer;
-                  if (!updateTimer) {
-                    updateTimer = setTimeout(() => {
-                      update({ answer: accumulatedTokens });
-                      updateTimer = null;
-                    }, 50); // small debounce for UI stability (50ms)
+
+                // Normalize partial shapes:
+                // - sometimes the stream sends plain strings (tokens)
+                // - sometimes objects like { answer: "...", explanation: ... }
+                if (typeof partial === "string") {
+                  // accumulate raw string tokens
+                  accumulated += partial;
+                  scheduleFlush();
+                } else if (partial && typeof partial === "object") {
+                  // If it's a streaming token object (small piece) with answer and no explanation
+                  if (partial.answer && !partial.explanation) {
+                    accumulated += partial.answer;
+                    scheduleFlush();
+                  } else {
+                    // This is likely a final structured object (explanation/sources/etc.)
+                    // first flush any buffered tokens
+                    if (accumulated) {
+                      clearFlushTimer();
+                      update({ answer: accumulated });
+                      accumulated = "";
+                    }
+                    // then show the structured partial
+                    update(partial);
                   }
                 } else {
-                  if (updateTimer) { clearTimeout(updateTimer); updateTimer = null; }
-                  update(partial);
+                  // Unknown shape: append safely
+                  accumulated += String(partial ?? "");
+                  scheduleFlush();
                 }
               },
               () => {
-                if (updateTimer) clearTimeout(updateTimer);
+                // On done: flush any remaining accumulated tokens, clear timers, then mark done
+                if (flushTimer) {
+                  clearTimeout(flushTimer);
+                  flushTimer = null;
+                }
+                if (accumulated && mountedRef.current) {
+                  // Final flush
+                  update({ answer: accumulated });
+                  // reflect that in lastGeminiResponse if nothing else was final
+                  lastGeminiResponse = lastGeminiResponse || { answer: accumulated };
+                  accumulated = "";
+                }
                 done();
                 replies[model] = lastGeminiResponse || { answer: "No response received" };
               },
-              (err) => { fail(err); }
+              (err) => {
+                // On error: clear timer and record failure
+                if (flushTimer) {
+                  clearTimeout(flushTimer);
+                  flushTimer = null;
+                }
+                fail(err);
+              }
             );
             break;
           }

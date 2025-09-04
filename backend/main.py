@@ -175,7 +175,7 @@ async def stream_perplexity(request: Request, payload: ChatRequest):
         if not await request.is_disconnected():
             try:
                 final_structured = LLMStructuredOutput(
-                    answer="".join(accumulated_answer),
+                    answer="",
                     explanation=None,
                     sources=normalize_sources(latest_sources),
                     facts=None,
@@ -205,127 +205,189 @@ async def stream_perplexity(request: Request, payload: ChatRequest):
     )
 
 
-# Streaming endpoint for Gemini
+
+# Gemini endpoint
 @app.post("/stream/gemini")
-async def stream_gemini(request: ChatRequest):
-    
-    history_payload = normalize_history(request.history)
+async def stream_gemini(request: Request, payload: ChatRequest):  # ✅ Fixed parameter
+    history_payload = normalize_history(payload.history)
 
     async def event_generator():
-        accumulated_answer = ""
+        accumulated_answer = []
+        seq = 0
         
         try:
             async for partial in gemini_agent.stream_response(
-                message=request.message,  # Agent will add this to history
-                history=history_payload   # Just the conversation history
+                message=payload.message,
+                history=history_payload
             ):
-                token = partial.get("answer", "")
-                accumulated_answer += token
-                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                # Add disconnect check
+                if await request.is_disconnected():
+                    break
+                    
+                if "error" in partial:
+                    yield sse("error", {"message": partial["error"]}, seq)
+                    seq += 1
+                    return
+                
+                if "answer" in partial:
+                    token = partial["answer"]
+                    accumulated_answer.append(token)
+                    seq += 1
+                    yield sse("token", {"answer": token}, seq)  # Stream individual tokens
+                
                 await asyncio.sleep(0)
 
-            # Create final structured response from accumulated text
-            final_structured = LLMStructuredOutput(
-                answer=accumulated_answer,
-                explanation=None,
-                sources=None,
-                facts=None,
-                code=None,
-                language=None,
-                actions=None,
-                extra=None
-            )
-            
-            yield f"data: {final_structured.model_dump_json()}\n\n"
-            yield "data: [DONE]\n\n"
+            # Send final structured response WITHOUT answer (frontend accumulates)
+            if not await request.is_disconnected():
+                final_structured = LLMStructuredOutput(
+                    answer="",  # Empty - frontend has accumulated the tokens
+                    explanation=None,
+                    sources=None,
+                    facts=None,
+                    code=None,
+                    language=None,
+                    actions=None,
+                    nerd_stats=None
+                )
+                seq += 1
+                yield sse("final", final_structured.model_dump(), seq)
+                
+            if not await request.is_disconnected():
+                seq += 1
+                yield sse("done", "[DONE]", seq)
 
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield sse("error", {"message": str(e)}, seq)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
-
+# DeepSeek endpoint (Updated)
 @app.post("/stream/deepseek")
-async def stream_deepseek(request: ChatRequest):
-    history_payload = normalize_history(request.history)
+async def stream_deepseek(request: Request, payload: ChatRequest):  # ✅ Fixed parameter
+    history_payload = normalize_history(payload.history)
 
     async def event_generator():
-        accumulated_answer = ""
+        seq = 0
         
         try:
-            # API call - stream tokens
             async for partial in openRouterAgent.stream_response(
-                message=request.message,
+                message=payload.message,
                 model="R1",
                 history=history_payload
             ):
-                token = partial.get("answer", "")
-                accumulated_answer += token
-                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                if await request.is_disconnected():  # ✅ Add disconnect check
+                    break
+                    
+                if "error" in partial:
+                    yield sse("error", {"message": partial["error"]}, seq)
+                    return
+                
+                if "answer" in partial:
+                    token = partial["answer"]
+                    seq += 1
+                    yield sse("token", {"answer": token}, seq)
+                
                 await asyncio.sleep(0)
 
-            # Create structured response from accumulated text
-            final_structured = LLMStructuredOutput(
-                answer=accumulated_answer,
-                explanation="Generated by DeepSeek R1 - a reasoning model focused on step-by-step problem solving",
-                sources=None,  # R1 doesn't provide sources
-                facts=None,
-                code=None,
-                language=None,
-                actions=None,
-                extra=None,
-            )
-            
-            # Send final structured object
-            yield f"data: {final_structured.model_dump_json()}\n\n"
-            yield "data: [DONE]\n\n"
+            # Send final response with empty answer + metadata
+            if not await request.is_disconnected():
+                final_structured = LLMStructuredOutput(
+                    answer="",  # Empty
+                    explanation="Generated by DeepSeek R1 - a reasoning model focused on step-by-step problem solving",
+                    sources=None,
+                    facts=None,
+                    code=None,
+                    language=None,
+                    actions=None,
+                    nerd_stats=None,
+                )
+                seq += 1
+                yield sse("final", final_structured.model_dump(), seq)
+                
+            if not await request.is_disconnected():
+                seq += 1
+                yield sse("done", "[DONE]", seq)
 
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield sse("error", {"message": str(e)}, seq)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream", 
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        }
+    )
 
-
+# Qwen endpoint
 @app.post("/stream/qwen")
-async def stream_qwen(request: ChatRequest):
-    
-    history_payload = normalize_history(request.history)
+async def stream_qwen(request: Request, payload: ChatRequest):  # ✅ Fixed parameter
+    history_payload = normalize_history(payload.history)
 
     async def event_generator():
-        accumulated_answer = ""
+        seq = 0
         
         try:
-            # API call - stream tokens
             async for partial in openRouterAgent.stream_response(
-                message=request.message,
+                message=payload.message,
                 model="Qwen",
                 history=history_payload
             ):
-                token = partial.get("answer", "")
-                accumulated_answer += token
-                yield f"data: {json.dumps({'answer': token}, ensure_ascii=False)}\n\n"
+                if await request.is_disconnected():  # ✅ Add disconnect check
+                    break
+                    
+                if "error" in partial:
+                    yield sse("error", {"message": partial["error"]}, seq)
+                    return
+                
+                if "answer" in partial:
+                    token = partial["answer"]
+                    seq += 1
+                    yield sse("token", {"answer": token}, seq)
+                
                 await asyncio.sleep(0)
 
-            # Create structured response from accumulated text
-            final_structured = LLMStructuredOutput(
-                answer=accumulated_answer,
-                explanation="Generated by Qwen - a coder model focused on step-by-step coding solution",
-                sources=None,  # Qwen doesn't provide sources
-                facts=None,
-                code=None,
-                language=None,
-                actions=None,
-                extra=None,
-            )
-            
-            # Send final structured object
-            yield f"data: {final_structured.model_dump_json()}\n\n"
-            yield "data: [DONE]\n\n"
+            # Send final response with empty answer + metadata
+            if not await request.is_disconnected():
+                final_structured = LLMStructuredOutput(
+                    answer="",  # Empty
+                    explanation="Generated by Qwen - a coder model focused on step-by-step coding solution",
+                    sources=None,
+                    facts=None,
+                    code=None,
+                    language=None,
+                    actions=None,
+                    nerd_stats=None,
+                )
+                seq += 1
+                yield sse("final", final_structured.model_dump(), seq)
+                
+            if not await request.is_disconnected():
+                seq += 1
+                yield sse("done", "[DONE]", seq)
 
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield sse("error", {"message": str(e)}, seq)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        }
+    )
 
 
 

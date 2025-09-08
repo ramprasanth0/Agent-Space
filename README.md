@@ -22,7 +22,7 @@
 
 ## 📸 Preview
 
-![Preview Screenshot](frontend/src/assets/preview-gif.gif)
+![Preview Screenshot](frontend/public/assets/preview.png)
 
 &nbsp;
 

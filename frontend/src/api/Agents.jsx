@@ -159,6 +159,9 @@ export async function streamChatToGemini(message, history, mode, onPartial, onCo
       actions: null,
       nerd_stats: null
     };
+
+    // Guards to prevent duplicate rendering
+    let seenFinal = false;
     
     let done = false;
     while (!done) {
@@ -192,34 +195,63 @@ export async function streamChatToGemini(message, history, mode, onPartial, onCo
         }
         
         switch (event) {
-          case 'token':
-            // Accumulate tokens in frontend
-            if (payload?.answer) content.answer += payload.answer;
-            break;
-            
-          case 'final':
-            // Merge metadata only (answer is empty from backend)
-            if (typeof payload === 'object') {
-              Object.assign(content, {
-                ...payload,
-                answer: content.answer  // Keep accumulated answer
-              });
+          case 'token': {
+            // Accumulate tokens in frontend, but guard against cumulative chunks
+            const incoming = payload?.answer != null ? String(payload.answer) : '';
+            if (incoming) {
+              // If SDK sends cumulative text, derive delta based on what we've already accumulated
+              const delta = incoming.startsWith(content.answer)
+                ? incoming.slice(content.answer.length)
+                : incoming;
+              if (delta) content.answer += delta;
             }
             break;
-            
+          }
+          
+          case 'final': {
+            // Merge metadata only (backend final should have empty answer)
+            if (!seenFinal && typeof payload === 'object') {
+              const { answer, ...meta } = payload;
+              Object.assign(content, meta);
+              seenFinal = true;
+            }
+            break;
+          }
+          
           case 'done':
             onComplete();
             done = true;
             break;
-            
+          
           case 'error':
             onError(payload?.message || 'An unknown error occurred.');
             done = true;
             break;
-            
-          default:
-            if (payload?.answer) content.answer += payload.answer;
+          
+          default: {
+            // Harden default: treat untyped metadata frames as final-like, else treat as token
+            if (payload && typeof payload === 'object') {
+              const hasMeta = (
+                'sources' in payload ||
+                'facts' in payload ||
+                'explanation' in payload ||
+                'nerd_stats' in payload ||
+                'code' in payload ||
+                'language' in payload
+              );
+              if (hasMeta) {
+                const { answer, ...meta } = payload;
+                Object.assign(content, meta);
+              } else if (payload.answer != null) {
+                const incoming = String(payload.answer);
+                const delta = incoming.startsWith(content.answer)
+                  ? incoming.slice(content.answer.length)
+                  : incoming;
+                if (delta) content.answer += delta;
+              }
+            }
             break;
+          }
         }
         
         if (done) break;
@@ -230,6 +262,9 @@ export async function streamChatToGemini(message, history, mode, onPartial, onCo
     onError(error.message);
   }
 }
+
+
+
 
 export async function streamChatToDeepSeek(message, history, mode, onPartial, onComplete, onError) {
   try {

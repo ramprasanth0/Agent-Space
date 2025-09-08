@@ -4,6 +4,8 @@ from google.genai import types
 # from .base import BaseAgentModel
 from ..schema import LLMStructuredOutput,KeyValuePair
 
+import asyncio
+
 
 #loading environment variable
 load_dotenv()
@@ -69,35 +71,25 @@ class GeminiAgent():
     
 
     async def stream_response(self, message: str, history=None):
-        """Stream response using current Gemini SDK"""
         try:
-            # Format history
-            chat_history = self.format_history(history or [])
-            
-            # Add current message
+            chat_history = self.format_history(history)
             if message:
-                chat_history.append(
-                    types.Content(
-                        role="user",
-                        parts=[types.Part.from_text(text=message)]
-                    )
-                )
-
-            # Stream response
+                chat_history.append(types.Content(role="user",
+                                   parts=[types.Part.from_text(text=message)]))
+            # Use one consistent model id across methods
             response = self.client.models.generate_content_stream(
                 model="gemini-2.5-flash",
                 contents=chat_history,
-                config=types.GenerateContentConfig(
-                    # temperature=0.7
-                    # max_output_tokens=2048,
-                )
+                config=types.GenerateContentConfig()
             )
-            
-            # Stream each chunk
+            cumulative = ""
             for chunk in response:
-                if hasattr(chunk, 'text') and chunk.text:
-                    yield {"answer": chunk.text}
-                    
+                if hasattr(chunk, "text") and chunk.text:
+                    text = chunk.text
+                    delta = text[len(cumulative):] if text.startswith(cumulative) else text
+                    cumulative = text
+                    if delta:
+                        yield {"answer": delta}  # only the new part
+                await asyncio.sleep(0)  # keep loop responsive
         except Exception as e:
-            print(f"GeminiAgent streaming error: {e}")
             yield {"error": str(e)}

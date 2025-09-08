@@ -208,66 +208,37 @@ async def stream_perplexity(request: Request, payload: ChatRequest):
 
 # Gemini endpoint
 @app.post("/stream/gemini")
-async def stream_gemini(request: Request, payload: ChatRequest):  # ✅ Fixed parameter
+async def stream_gemini(request: Request, payload: ChatRequest):
     history_payload = normalize_history(payload.history)
-
     async def event_generator():
-        accumulated_answer = []
         seq = 0
-        
         try:
             async for partial in gemini_agent.stream_response(
                 message=payload.message,
                 history=history_payload
             ):
-                # Add disconnect check
                 if await request.is_disconnected():
                     break
-                    
                 if "error" in partial:
-                    yield sse("error", {"message": partial["error"]}, seq)
-                    seq += 1
+                    yield sse("error", {"message": partial["error"]}, seq); seq += 1
                     return
-                
                 if "answer" in partial:
-                    token = partial["answer"]
-                    accumulated_answer.append(token)
-                    seq += 1
-                    yield sse("token", {"answer": token}, seq)  # Stream individual tokens
-                
-                await asyncio.sleep(0)
-
-            # Send final structured response WITHOUT answer (frontend accumulates)
+                    yield sse("token", {"answer": partial["answer"]}, seq); seq += 1
+                await asyncio.sleep(0)  # keep loop responsive
+            # Final payload with empty answer; add metadata if your agent later provides any
             if not await request.is_disconnected():
                 final_structured = LLMStructuredOutput(
-                    answer="",  # Empty - frontend has accumulated the tokens
-                    explanation=None,
-                    sources=None,
-                    facts=None,
-                    code=None,
-                    language=None,
-                    actions=None,
-                    nerd_stats=None
+                    answer="", explanation=None, sources=None, facts=None,
+                    code=None, language=None, actions=None, nerd_stats=None
                 )
-                seq += 1
-                yield sse("final", final_structured.model_dump(), seq)
-                
+                yield sse("final", final_structured.model_dump(), seq); seq += 1
             if not await request.is_disconnected():
-                seq += 1
-                yield sse("done", "[DONE]", seq)
-
+                yield sse("done", "[DONE]", seq); seq += 1
         except Exception as e:
             yield sse("error", {"message": str(e)}, seq)
+    return StreamingResponse(event_generator(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache","X-Accel-Buffering":"no","Connection":"keep-alive"})
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-            "Connection": "keep-alive",
-        },
-    )
 
 # DeepSeek endpoint (Updated)
 @app.post("/stream/deepseek")

@@ -1,7 +1,6 @@
 // src/hooks/useStreaming.js
-// NOTE: This is the full, updated code for the file.
-// It now accepts an `onStreamComplete` callback to notify the parent
-// component when each individual model's stream has finished. (NEW)
+// NOTE: Simplified Gemini branch to rely on API connector accumulation and typed SSE events.
+//       Removes local buffering/flush that could double-append when chunks are cumulative.
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
@@ -16,7 +15,7 @@ export function useStreaming(
   sanitizeHistoryForApi,
   messages, setMessages,
   mode, setHasStartedChat,
-  onStreamComplete // (NEW) Callback to signal completion for a specific model.
+  onStreamComplete
 ) {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState([]);
@@ -25,7 +24,6 @@ export function useStreaming(
   const [lastUserQuestion, setLastUserQuestion] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
 
-  // mountedRef prevents setState on unmounted components.
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
@@ -42,7 +40,6 @@ export function useStreaming(
     const inputToSend = isString ? maybeEventOrInput : input;
     if (!inputToSend || !inputToSend.trim()) return;
 
-    // Prepare UI for a new request.
     const providers = [...selectedModels];
     if (mountedRef.current) {
       setResponse(providers.map(m => ({ provider: m, response: null })));
@@ -65,26 +62,19 @@ export function useStreaming(
 
       const update = (part) => {
         if (!mountedRef.current) return;
+        last = part;
         setResponse(prev => prev.map(r => r.provider === model ? { ...r, response: part } : r));
       };
 
-      // (NEW) This function now calls the onStreamComplete callback with the model name.
       const done = () => {
         if (!mountedRef.current) {
           setLoadingModels(prev => prev.filter(m => m !== model));
           return;
         }
-
-        // Signal to the parent component that this specific model's stream is complete.
-        if (onStreamComplete) {
-          onStreamComplete(model);
-        }
-
+        if (onStreamComplete) onStreamComplete(model);
         setLoadingModels(prev => {
           const next = prev.filter(m => m !== model);
-          if (next.length === 0) {
-            setIsStreaming(false); // Set global streaming to false only when all are done.
-          }
+          if (next.length === 0) setIsStreaming(false);
           return next;
         });
       };
@@ -96,99 +86,36 @@ export function useStreaming(
           case "Sonar":
             await streamChatToPerplexity(
               inputToSend, historyTrim, mode,
-              (partial) => { last = partial; update(partial); },
+              (partial) => update(partial),
               done,
-              (err) => { fail(err); }
+              (err) => fail(err)
             );
             break;
 
-          case "Gemini": {
-            // ... (The Gemini-specific logic remains unchanged) ...
-            let lastGeminiResponse = null;
-            let accumulated = "";
-            let flushTimer = null;
-            const FLUSH_MS = 50;
-
-            const scheduleFlush = () => {
-              if (flushTimer) return;
-              flushTimer = setTimeout(() => {
-                if (accumulated && mountedRef.current) {
-                  update({ answer: accumulated });
-                }
-                flushTimer = null;
-              }, FLUSH_MS);
-            };
-
-            const clearFlushTimer = () => {
-              if (flushTimer) {
-                clearTimeout(flushTimer);
-                flushTimer = null;
-              }
-            };
-
+          case "Gemini":
             await streamChatToGemini(
               inputToSend, historyTrim, mode,
-              (partial) => {
-                lastGeminiResponse = partial;
-                if (typeof partial === "string") {
-                  accumulated += partial;
-                  scheduleFlush();
-                } else if (partial && typeof partial === "object") {
-                  if (partial.answer && !partial.explanation) {
-                    accumulated += partial.answer;
-                    scheduleFlush();
-                  } else {
-                    if (accumulated) {
-                      clearFlushTimer();
-                      update({ answer: accumulated });
-                      accumulated = "";
-                    }
-                    update(partial);
-                  }
-                } else {
-                  accumulated += String(partial ?? "");
-                  scheduleFlush();
-                }
-              },
-              () => {
-                if (flushTimer) {
-                  clearTimeout(flushTimer);
-                  flushTimer = null;
-                }
-                if (accumulated && mountedRef.current) {
-                  update({ answer: accumulated });
-                  lastGeminiResponse = lastGeminiResponse || { answer: accumulated };
-                  accumulated = "";
-                }
-                done(); // Call the main done function.
-                replies[model] = lastGeminiResponse || { answer: "No response received" };
-              },
-              (err) => {
-                if (flushTimer) {
-                  clearTimeout(flushTimer);
-                  flushTimer = null;
-                }
-                fail(err);
-              }
+              (partial) => update(partial),
+              done,
+              (err) => fail(err)
             );
             break;
-          }
 
           case "R1":
             await streamChatToDeepSeek(
               inputToSend, historyTrim, mode,
-              (partial) => { last = partial; update(partial); },
+              (partial) => update(partial),
               done,
-              (err) => { fail(err); }
+              (err) => fail(err)
             );
             break;
 
           case "Qwen":
             await streamChatToQwen(
               inputToSend, historyTrim, mode,
-              (partial) => { last = partial; update(partial); },
+              (partial) => update(partial),
               done,
-              (err) => { fail(err); }
+              (err) => fail(err)
             );
             break;
 
@@ -202,9 +129,8 @@ export function useStreaming(
       replies[model] ||= last || { answer: "No response" };
     }));
 
-    // Update message history for conversation mode.
     if (mode === "conversation" && selectedModels.length === 1) {
-      const m = selectedModels[0];
+      const m = selectedModels;
       const assistant = replies[m];
       if (assistant && (assistant.answer || assistant.sources || assistant.facts)) {
         if (mountedRef.current) {
@@ -220,11 +146,9 @@ export function useStreaming(
         }
       }
     } else {
-      if (mountedRef.current) {
-        setMessages([]);
-      }
+      if (mountedRef.current) setMessages([]);
     }
-  }, [input, selectedModels, setHasStartedChat, sanitizeHistoryForApi, messages, mode, setMessages, onStreamComplete]); // (NEW) Add onStreamComplete to dependencies.
+  }, [input, selectedModels, setHasStartedChat, sanitizeHistoryForApi, messages, mode, setMessages, onStreamComplete]);
 
   return {
     input, setInput, handleClick,

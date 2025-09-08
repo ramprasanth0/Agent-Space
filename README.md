@@ -130,8 +130,12 @@ Contributors and forks do not need to use it to run the project locally.
 
 The pipeline is implemented using **GitHub Actions** and lives at:`.github/workflows/cicd.yml`
 
-- The pipeline builds Docker images for the frontend and backend, pushes them to Amazon **Elastic Container Registry (ECR)**, and deploys containers to an **Elastic Compute Cloud(EC2)** instance via SSH.  
-  Traffic is served through an **Application Load Balancer (ALB)** that uses a TLS certificate managed by **Amazon Certificate Manager (ACM)** for HTTPS.
+- The pipeline builds Docker images for the frontend and backend, pushes them to Amazon **Elastic Container Registry (ECR)**, and deploys containers to an **Elastic Compute Cloud(EC2)** instance via SSH.
+- Traffic is served through an **Application Load Balancer (ALB)** that uses a TLS certificate managed by **Amazon Certificate Manager (ACM)** for HTTPS.
+
+### 📊 Pipeline Overview
+
+![Pipeline Diagram](project%20info/pipeline_info.png)
 
 ### 📂 Where the config lives
 
@@ -151,8 +155,7 @@ The pipeline is implemented using **GitHub Actions** and lives at:`.github/workf
 - Authenticates Docker on EC2 with ECR (`aws ecr get-login-password`).
 - Pulls updated backend and frontend images.
 - Removes old containers and redeploys (`backend` on port `8000`, `frontend` on port `80`).
-- Injects required environment variables into the backend container (AWS creds, SES, API keys).  
-
+- Injects required environment variables into the backend container (AWS creds, SES, API keys).
 
 ### 🔑 Configuration & Secrets
 

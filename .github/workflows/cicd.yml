@@ -97,3 +97,8 @@ jobs:
             docker rm -f frontend || true
             docker run -d --restart unless-stopped --name frontend --network my-app-network -p 80:80 \
               ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
+
+            # Remove stopped images, containers, volumes
+            docker image prune -a -f
+            docker container prune -f
+            docker volume prune -f

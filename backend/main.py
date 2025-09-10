@@ -5,6 +5,8 @@ from fastapi import status
 from pydantic import BaseModel,constr
 from pydantic import Field
 from typing import List,Literal
+import logging
+import sys
 import asyncio
 import json
 import os, boto3
@@ -14,6 +16,20 @@ from .schema import LLMStructuredOutput,Source,KeyValuePair
 from .agents.perplexity import PerplexityAgent
 from .agents.gemini import GeminiAgent
 from .agents.open_router import OpenRouterAgent
+
+
+# ------------------------
+# Logging Configuration
+# ------------------------
+# ------------------------
+# Logging Configuration
+# ------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("agent-space")
 
 app = FastAPI()
 
@@ -407,3 +423,5 @@ def send_feedback_email(body: str):
 async def feedback(payload: FeedbackIn, background: BackgroundTasks):
     background.add_task(send_feedback_email, payload.message)
     return JSONResponse({"ok": True}, status_code=status.HTTP_202_ACCEPTED)
+
+

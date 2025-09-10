@@ -18,30 +18,6 @@ from .agents.perplexity import PerplexityAgent
 from .agents.gemini import GeminiAgent
 from .agents.open_router import OpenRouterAgent
 
-# ------------------------
-# Logging Configuration
-# ------------------------
-AWS_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "ap-south-2"  # ensure a fallback [19]
-logs_client = boto3.client("logs", region_name=AWS_REGION)  # rely on IAM role or env creds [6]
-
-logger = logging.getLogger("agent-space")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())  # console for docker logs [2]
-
-# Use boto3_client instead of boto3_session
-cw_handler = watchtower.CloudWatchLogHandler(
-    log_group=os.environ.get("CLOUDWATCH_LOG_GROUP", "agent-space-logs"),
-    stream_name=os.environ.get("CLOUDWATCH_LOG_STREAM", "backend"),
-    boto3_client=logs_client,
-    create_log_group=True,
-    log_group_retention_days=7,
-)
-# Avoid attaching duplicate handlers on reload
-if not any(isinstance(h, watchtower.CloudWatchLogHandler) for h in logger.handlers):
-    logger.addHandler(cw_handler)  # attach once [2]
-
-logger.info("CloudWatch logging initialized via Watchtower")  # test entry [2]
-
 
 # app setup
 app = FastAPI()
@@ -53,6 +29,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ------------------------
+# Logging Configuration
+# ------------------------
+AWS_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "ap-south-2"
+logs_client = boto3.client("logs", region_name=AWS_REGION)
+
+cw_handler = watchtower.CloudWatchLogHandler(
+    log_group=os.environ.get("CLOUDWATCH_LOG_GROUP", "agent-space-logs"),
+    stream_name=os.environ.get("CLOUDWATCH_LOG_STREAM", "backend"),
+    boto3_client=logs_client,
+    create_log_group=True,
+    log_group_retention_days=7,
+)
+
+@app.on_event("startup")
+async def on_startup():
+    # Attach to your app logger
+    app_logger = logging.getLogger("agent-space")
+    if not any(isinstance(h, watchtower.CloudWatchLogHandler) for h in app_logger.handlers):
+        app_logger.addHandler(cw_handler)
+        app_logger.setLevel(logging.INFO)
+
+    # Attach to Uvicorn loggers so their output reaches CloudWatch
+    for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "httpx", "botocore"):
+        lg = logging.getLogger(name)
+        if not any(isinstance(h, watchtower.CloudWatchLogHandler) for h in lg.handlers):
+            lg.addHandler(cw_handler)
+            lg.setLevel(logging.INFO)
+            # Keep propagate=True so logs also go to console; set False if you see duplicates
+
+    app_logger.info("CloudWatch logging initialized via Watchtower (startup hook)")
+
 
 #check if server is running
 @app.get("/")

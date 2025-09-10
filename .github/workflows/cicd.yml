@@ -37,11 +37,13 @@ jobs:
       - name: Build frontend Docker image
         working-directory: ./frontend
         run: |
+          set -e
           docker build --no-cache \
             -t ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }} .
 
       - name: Push frontend image to ECR
         run: |
+          set -e
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
 
       # -----------------------------
@@ -50,11 +52,13 @@ jobs:
       - name: Build backend Docker image
         working-directory: ./backend
         run: |
+          set -e
           docker build --no-cache \
             -t ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }} .
 
       - name: Push backend image to ECR
         run: |
+          set -e
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }}
 
       # -----------------------------

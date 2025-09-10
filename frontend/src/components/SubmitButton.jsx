@@ -5,7 +5,7 @@ export default function SubmitButton({ loading, disabled, onClick }) {
   return (
     <div className="my-5 mr-6 flex items-center justify-center">
       <button
-        className="w-full flex items-center justify-center bg-accent-content text-black rounded-xl py-2 hover:bg-secondary-content hover:text-white transition"
+        className="w-full flex items-center justify-center bg-accent/75 text-black rounded-xl py-2 hover:bg-accent hover:text-white transition"
         onClick={onClick}
         disabled={loading || disabled}
         data-testid="inputcard-submit"

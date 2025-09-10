@@ -21,21 +21,29 @@ from .agents.open_router import OpenRouterAgent
 # ------------------------
 # Logging Configuration
 # ------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger("agent-space")
+AWS_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "ap-south-2"  # ensure a fallback [19]
+logs_client = boto3.client("logs", region_name=AWS_REGION)  # rely on IAM role or env creds [6]
 
-# --- Backend logger setup for CloudWatch ---
 logger = logging.getLogger("agent-space")
 logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())  # console for docker logs [2]
 
-# Attach CloudWatch handler
-cw_handler = watchtower.CloudWatchLogHandler(log_group="agent-space-logs", stream_name="backend")
-logger.addHandler(cw_handler)
+# Use boto3_client instead of boto3_session
+cw_handler = watchtower.CloudWatchLogHandler(
+    log_group=os.environ.get("CLOUDWATCH_LOG_GROUP", "agent-space-logs"),
+    stream_name=os.environ.get("CLOUDWATCH_LOG_STREAM", "backend"),
+    boto3_client=logs_client,
+    create_log_group=True,
+    log_group_retention_days=7,
+)
+# Avoid attaching duplicate handlers on reload
+if not any(isinstance(h, watchtower.CloudWatchLogHandler) for h in logger.handlers):
+    logger.addHandler(cw_handler)  # attach once [2]
 
+logger.info("CloudWatch logging initialized via Watchtower")  # test entry [2]
+
+
+# app setup
 app = FastAPI()
 
 app.add_middleware(

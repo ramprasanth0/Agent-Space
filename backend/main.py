@@ -6,6 +6,7 @@ from pydantic import BaseModel,constr
 from pydantic import Field
 from typing import List,Literal
 import logging
+import watchtower
 import sys
 import asyncio
 import json
@@ -17,10 +18,6 @@ from .agents.perplexity import PerplexityAgent
 from .agents.gemini import GeminiAgent
 from .agents.open_router import OpenRouterAgent
 
-
-# ------------------------
-# Logging Configuration
-# ------------------------
 # ------------------------
 # Logging Configuration
 # ------------------------
@@ -30,6 +27,14 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("agent-space")
+
+# --- Backend logger setup for CloudWatch ---
+logger = logging.getLogger("agent-space")
+logger.setLevel(logging.INFO)
+
+# Attach CloudWatch handler
+cw_handler = watchtower.CloudWatchLogHandler(log_group="agent-space-logs", stream_name="backend")
+logger.addHandler(cw_handler)
 
 app = FastAPI()
 
@@ -129,6 +134,38 @@ def sse(event: str, data: dict | str, seq: int | None = None) -> str:
         prefix += f"event: {event}\n"
     payload = json.dumps(data, ensure_ascii=False) if isinstance(data, (dict, list)) else str(data)
     return f"{prefix}data: {payload}\n\n"  # MDN SSE framing
+
+
+########################################
+# --- API endpoint for frontend logs ---
+########################################
+
+@app.post("/api/frontend-logs")
+async def frontend_logs(request: Request):
+    """
+    Receives logs from the frontend and forwards them to CloudWatch
+    """
+    try:
+        data = await request.json()
+        # Expected: {"level": "INFO"|"WARN"|"ERROR", "message": "...", "extra": {...}}
+        level = data.get("level", "INFO").upper()
+        msg = data.get("message", "")
+        extra = data.get("extra", {})
+
+        if level == "ERROR":
+            logger.error(msg, extra=extra)
+        elif level == "WARN":
+            logger.warning(msg, extra=extra)
+        else:
+            logger.info(msg, extra=extra)
+
+        return {"ok": True}
+    except Exception as e:
+        logger.exception("Failed to log frontend message")
+        return {"ok": False, "error": str(e)}
+
+
+
 
 ###############################################
 ######## streaming api endpoints ##################

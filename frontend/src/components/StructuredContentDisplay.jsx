@@ -4,6 +4,7 @@
 // sections are rendered, guaranteeing a sequential display. (NEW)
 
 import ReactMarkdown from 'react-markdown';
+import CodeBlock from './CodeBlock';
 
 export default function StructuredContentDisplay({ content, isStreamComplete }) {
   if (!content) return null;
@@ -15,27 +16,20 @@ export default function StructuredContentDisplay({ content, isStreamComplete }) 
         <ReactMarkdown
           components={{
             code({ node, inline, className, children, ...props }) {
+              // Safely compute the raw code text
+              const codeText = Array.isArray(children)
+                ? children.join('')
+                : String(children || '');
+              
               const match = /language-(\w+)/.exec(className || '');
               const language = match ? match[1] : '';
 
+              // Fenced code block: render our reusable CodeBlock with copy UI
               if (!inline && match) {
-                const codeLines = String(children).trim().split('\n');
-                return (
-                  <div className="my-3">
-                    {language && (
-                      <div className="badge badge-primary badge-sm mb-1">{language}</div>
-                    )}
-                    <div className="mockup-code bg-base-200 text-left">
-                      {codeLines.map((line, index) => (
-                        <pre key={index} data-prefix=">" className="text-sm">
-                          <code>{line}</code>
-                        </pre>
-                      ))}
-                    </div>
-                  </div>
-                );
+                return <CodeBlock code={codeText} language={language} />;
               }
 
+              // Inline code: keep lightweight rendering
               return (
                 <code className="kbd kbd-sm" {...props}>
                   {children}

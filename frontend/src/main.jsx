@@ -10,12 +10,12 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Global JS error handler
-window.onerror = (message, source, lineno, colno, error) => {
-  logToBackend("ERROR", String(message), { source, lineno, colno, stack: error?.stack });
-};
+// // Global JS error handler
+// window.onerror = (message, source, lineno, colno, error) => {
+//   logToBackend("ERROR", String(message), { source, lineno, colno, stack: error?.stack });
+// };
 
-// Unhandled promise rejections
-window.onunhandledrejection = (event) => {
-  logToBackend("ERROR", "Unhandled promise rejection", { reason: event.reason });
-};
+// // Unhandled promise rejections
+// window.onunhandledrejection = (event) => {
+//   logToBackend("ERROR", "Unhandled promise rejection", { reason: event.reason });
+// };

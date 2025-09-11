@@ -8,7 +8,8 @@ from typing import AsyncGenerator, Dict, Any, List, Optional
 from dotenv import load_dotenv
 
 from .base import BaseAgentModel
-from ..schema import LLMStructuredOutput
+from ...models.schema import LLMStructuredOutput,KeyValuePair
+
 
 #loading environment variable
 load_dotenv()

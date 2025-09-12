@@ -13,6 +13,13 @@ sys.path.insert(0, str(project_root))
 # Mock watchtower before importing backend
 sys.modules['watchtower'] = Mock()
 
+# Mock Google AI client to prevent API key errors
+with patch('google.genai.Client'):
+    # Mock OpenAI client for OpenRouter agents
+    with patch('openai.OpenAI'):
+        # Now safe to import your app
+        from backend.main import app
+
 # Now import your app (should work from root)
 from backend.main import app
 

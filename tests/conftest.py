@@ -15,8 +15,6 @@ sys.modules['watchtower'] = Mock()
 
 # Mock Google AI client to prevent API key errors
 with patch('google.genai.Client'):
-    # Mock OpenAI client for OpenRouter agents
-    with patch('openai.OpenAI'):
         # Now safe to import your app
         from backend.main import app
 

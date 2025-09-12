@@ -35,11 +35,12 @@ jobs:
       # Run backend unit tests (blocks pipeline on failure)
       # --------------------------------------------------------
       - name: Run backend tests
-        working-directory: ./backend # adjust if backend lives elsewhere
+        working-directory: ./backend
         run: |
           set -e
           # Install Python deps — use your exact lock/requirements file
           pip install -r requirements.txt
+          pip install -r requirements-test.txt
           # Execute pytest with coverage summary
           pytest tests/ --cov=backend --cov-report=term-missing -v
 

@@ -51,6 +51,7 @@ Pygments==2.19.2
 pyparsing==3.2.3
 pytest==8.4.1
 pytest-asyncio==1.1.0
+pytest-cov==4.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-multipart==0.0.20

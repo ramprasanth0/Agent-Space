@@ -42,8 +42,7 @@ jobs:
           pip install -r ../requirements-test.txt   # test/dev packages
 
       - name: Run backend tests
-        working-directory: ./backend
-        run: pytest -v # pytest.ini handles discovery
+        run: pytest -v --cov=backend --cov-report=term-missing
 
       # -----------------------------
       # Build & Push Frontend

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Generator
 from unittest.mock import Mock, patch
+from moto import mock_aws
 from fastapi.testclient import TestClient
 
 
@@ -36,19 +37,17 @@ def setup_test_environment():
         'AWS_ACCESS_KEY_ID': 'testing-access-key',
         'AWS_SECRET_ACCESS_KEY': 'testing-secret-key',
         'AWS_REGION': 'ap-south-2',
-        'SES_SENDER': 'test-sender@example.com',
-        'SES_RECIPIENT': 'test-recipient@example.com',
+        'SES_SENDER': 'no-reply@agentspace.wtf',
+        'SES_RECIPIENT': 'essrramprasanth@gmail.com',
         'VITE_BACKEND_URL': 'http://localhost:8000',
-        'TESTING': 'true'  # Flag to indicate test environment
+        'TESTING': 'true'
     }
     
-    # Set environment variables only if they're not already set
     for key, value in test_env_vars.items():
         if key not in os.environ:
             os.environ[key] = value
     
-    yield  # This runs before all tests
-    
+    yield
     # Cleanup (optional) - remove test environment variables after tests
     # Uncomment if you want cleanup:
     # for key in test_env_vars.keys():
